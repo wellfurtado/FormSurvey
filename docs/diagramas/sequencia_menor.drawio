@@ -1,0 +1,118 @@
+<mxfile>
+  <diagram id="seqlayout" name="Fluxo do menor - responsavel autoriza, uuid do codigo/token">
+    <mxGraphModel dx="800" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="resp" value="Responsavel" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=40;participant=umlActor;verticalAlign=bottom;spacingBottom=-14;labelBackgroundColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="100" height="1310" as="geometry"/>
+        </mxCell>
+        <mxCell id="sys" value="Sistema (Flask)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=40;" vertex="1" parent="1">
+          <mxGeometry x="240" y="40" width="100" height="1310" as="geometry"/>
+        </mxCell>
+        <mxCell id="db" value="Banco (SQLite)" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=40;" vertex="1" parent="1">
+          <mxGeometry x="440" y="40" width="100" height="1310" as="geometry"/>
+        </mxCell>
+        <mxCell id="menor" value="Menor" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=40;participant=umlActor;verticalAlign=bottom;spacingBottom=-14;labelBackgroundColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="640" y="40" width="100" height="1310" as="geometry"/>
+        </mxCell>
+        <mxCell id="mail" value="E-mail" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;portConstraint=eastwest;size=40;" vertex="1" parent="1">
+          <mxGeometry x="840" y="40" width="100" height="1310" as="geometry"/>
+        </mxCell>
+        <mxCell id="act0" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#ffffff;" vertex="1" parent="sys">
+          <mxGeometry x="45" y="90" width="10" height="220" as="geometry"/>
+        </mxCell>
+        <mxCell id="act1" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#ffffff;" vertex="1" parent="db">
+          <mxGeometry x="45" y="140" width="10" height="380" as="geometry"/>
+        </mxCell>
+        <mxCell id="act2" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#ffffff;" vertex="1" parent="sys">
+          <mxGeometry x="45" y="420" width="10" height="150" as="geometry"/>
+        </mxCell>
+        <mxCell id="act3" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#ffffff;" vertex="1" parent="sys">
+          <mxGeometry x="45" y="620" width="10" height="270" as="geometry"/>
+        </mxCell>
+        <mxCell id="act4" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#ffffff;" vertex="1" parent="sys">
+          <mxGeometry x="45" y="1000" width="10" height="220" as="geometry"/>
+        </mxCell>
+        <mxCell id="act5" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#ffffff;" vertex="1" parent="db">
+          <mxGeometry x="45" y="670" width="10" height="600" as="geometry"/>
+        </mxCell>
+        <mxCell id="act6" value="" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#ffffff;" vertex="1" parent="mail">
+          <mxGeometry x="45" y="1170" width="10" height="100" as="geometry"/>
+        </mxCell>
+        <mxCell id="m0" value="TCLE: autoriza + preenche dados" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=0.5;exitY=0.0687;entryX=0;entryY=0.0;" edge="1" parent="1" source="resp" target="act0">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m1" value="INSERT guardians(...)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=1;exitY=0.2273;entryX=0;entryY=0.0;" edge="1" parent="1" source="act0" target="act1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m2" value="generate_unique_code() = uuid4().hex" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=1;exitY=0.4545;entryX=1;entryY=0.5909;" edge="1" parent="1" source="act0" target="act0">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="350" y="230"/><mxPoint x="350" y="260"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3" value="INSERT access_codes(code, guardian_id, minor_name)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=1;exitY=0.7727;entryX=0;entryY=0.3158;" edge="1" parent="1" source="act0" target="act1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m4" value="Link /menor/acesso/:code + codigo bruto" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;curved=0;rounded=0;strokeColor=#999999;fontColor=#999999;exitX=0;exitY=1.0;entryX=0.5;entryY=0.2366;" edge="1" parent="1" source="act0" target="resp">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="note5" value="Compartilha o link (uso unico) com o(a) menor" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="110" y="380" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="m6" value="GET /menor/acesso/:code" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=0.5;exitY=0.3206;entryX=1;entryY=0.0;" edge="1" parent="1" source="menor" target="act2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m7" value="SELECT access_codes WHERE code=? AND used=0" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=1;exitY=0.3333;entryX=0;entryY=0.8684;" edge="1" parent="1" source="act2" target="act1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m8" value="codigo valido" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;curved=0;rounded=0;strokeColor=#999999;fontColor=#999999;exitX=0;exitY=1.0;entryX=1;entryY=0.6667;" edge="1" parent="1" source="act1" target="act2">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m9" value="TALE (nome ja preenchido)" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;curved=0;rounded=0;strokeColor=#999999;fontColor=#999999;exitX=1;exitY=1.0;entryX=0.5;entryY=0.4351;" edge="1" parent="1" source="act2" target="menor">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m10" value="POST decision=agree" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=0.5;exitY=0.4733;entryX=1;entryY=0.0;" edge="1" parent="1" source="menor" target="act3">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m11" value="UPDATE access_codes SET used=1 (consumido aqui)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=1;exitY=0.1852;entryX=0;entryY=0.0;" edge="1" parent="1" source="act3" target="act5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m12" value="INSERT minors(...)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=1;exitY=0.3704;entryX=0;entryY=0.0833;" edge="1" parent="1" source="act3" target="act5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m13" value="new_participant() -&gt; token = uuid4()" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=1;exitY=0.5556;entryX=1;entryY=0.6667;" edge="1" parent="1" source="act3" target="act3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="350" y="810"/><mxPoint x="350" y="840"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m14" value="INSERT participants(token, kind='minor')" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=1;exitY=0.8148;entryX=0;entryY=0.2833;" edge="1" parent="1" source="act3" target="act5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m15" value="Redirect /pesquisa/:token/chatbot" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;curved=0;rounded=0;strokeColor=#999999;fontColor=#999999;exitX=1;exitY=1.0;entryX=0.5;entryY=0.6794;" edge="1" parent="1" source="act3" target="menor">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="note16" value="Menor guarda o link -- funciona mesmo perdendo a sessao" style="shape=note;whiteSpace=wrap;html=1;size=14;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="710" y="960" width="140" height="40" as="geometry"/>
+        </mxCell>
+        <mxCell id="m17" value="POST respostas (URL contem o token)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=0.5;exitY=0.7634;entryX=1;entryY=0.0;" edge="1" parent="1" source="menor" target="act4">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m18" value="INSERT responses(...); completed_at=agora" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=1;exitY=0.2273;entryX=0;entryY=0.6333;" edge="1" parent="1" source="act4" target="act5">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m19" value="Gera PDF (termo + respostas)" style="html=1;verticalAlign=bottom;endArrow=block;curved=0;rounded=0;exitX=1;exitY=0.4545;entryX=1;entryY=0.5909;" edge="1" parent="1" source="act4" target="act4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points"><mxPoint x="350" y="1140"/><mxPoint x="350" y="1170"/></Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m20" value="Envia e-mail HTML + PDF em anexo" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;curved=0;rounded=0;exitX=1;exitY=0.7727;entryX=0;entryY=0.0;" edge="1" parent="1" source="act4" target="act6">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="m21" value="Pagina de agradecimento" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;curved=0;rounded=0;strokeColor=#999999;fontColor=#999999;exitX=1;exitY=1.0;entryX=0.5;entryY=0.9313;" edge="1" parent="1" source="act4" target="menor">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
