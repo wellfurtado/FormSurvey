@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+{# Login do painel: uma senha única, definida no .env (ADMIN_PASSWORD). #}
+<div class="card fade-in" style="max-width:380px;margin:60px auto 0;">
+  <h1>Painel administrativo</h1>
+  <form method="post">
+    <div class="field">
+      <label for="password">Senha</label>
+      <input type="password" id="password" name="password" required autofocus>
+    </div>
+    <button type="submit" class="btn btn-block">Entrar</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+{# Entrada do(a) menor pelo código (para quem recebeu só o código, sem o
+   link). O código é convertido para minúsculas antes da busca, então tanto
+   faz como a pessoa o digitar. #}
+<div class="card fade-in">
+  <h1>Acesso com código</h1>
+  <p>Cole ou digite o código que o(a) seu(sua) responsável recebeu.</p>
+
+  <form method="post">
+    <div class="field">
+      <label for="code">Código de acesso</label>
+      <input type="text" id="code" name="code" maxlength="32" class="code-input" required>
+    </div>
+    <button type="submit" class="btn">Continuar →</button>
+  </form>
+</div>
+{% endblock %}

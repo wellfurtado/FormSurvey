@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+{# Página única do adulto: o RCLE inteiro + a decisão. Não há página de
+   "seus dados" porque não peço nenhum dado pessoal ao adulto. #}
+{% include "_term_sections.html" %}
+
+<form method="post" class="decision-panel fade-in">
+  <p class="decision-declaration">{{ declaration }}</p>
+
+  {# A declaração de maioridade é obrigatória só para quem concorda: o atributo
+     "required" bloqueia o envio sem a marcação, e o botão de recusa usa
+     "formnovalidate" para poder recusar sem marcar nada. O servidor confere de
+     novo (app.py), porque a validação do navegador pode ser contornada. #}
+  <label class="check-row">
+    <input type="checkbox" name="adult_declared" value="yes" required>
+    Declaro que tenho 18 anos ou mais.
+  </label>
+
+  <div class="decision-buttons">
+    <button type="submit" name="decision" value="agree" class="btn btn-agree">✅ Concordo em participar</button>
+    <button type="submit" name="decision" value="disagree" class="btn btn-disagree" formnovalidate>Não concordo em participar</button>
+  </div>
+  <p class="decision-note">{{ note }}</p>
+</form>
+{% endblock %}

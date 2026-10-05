@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+{# Painel do pesquisador. Só números agregados (stats.py), nunca linhas
+   individuais. #}
+{% include "_admin_nav.html" %}
+
+<div class="card fade-in">
+  <h1>📊 Painel de respostas</h1>
+  <p class="muted">Nenhum dado aqui identifica um participante: as respostas não têm nome, e-mail ou matrícula.</p>
+</div>
+
+<div class="card fade-in">
+  <h2>Termos: adesão e recusa</h2>
+  <div class="stat-grid">
+    <div class="stat-tile">
+      <strong>Adultos (RCLE)</strong>
+      <span>{{ stats.consent.adult.agreed }} concordaram · {{ stats.consent.adult.declined }} recusaram</span>
+    </div>
+    <div class="stat-tile">
+      <strong>Responsáveis (TCLE)</strong>
+      <span>{{ stats.consent.guardian.agreed }} autorizaram · {{ stats.consent.guardian.declined }} não autorizaram</span>
+    </div>
+    <div class="stat-tile">
+      <strong>Menores (TALE)</strong>
+      <span>{{ stats.consent.minor.agreed }} assentiram · {{ stats.consent.minor.declined }} recusaram</span>
+      <span>{{ stats.consent.minor.pending }} código(s) ainda não usado(s)</span>
+    </div>
+  </div>
+</div>
+
+<div class="card fade-in">
+  <h2>Condições experimentais</h2>
+  <p class="muted">O sorteio é balanceado: os grupos de "sorteados" nunca devem diferir em mais de 1.
+  A diferença entre "sorteados" e "concluíram" é a desistência em cada condição.</p>
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Condição</th>
+          {% for f in stats.factors %}<th>{{ f | upper }}</th>{% endfor %}
+          <th>Sorteados</th><th>Abriram o chatbot</th><th>Concluíram</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in stats.conditions %}
+        <tr>
+          <td>{{ c.name }}</td>
+          {% for f in stats.factors %}<td>{{ 'alta' if c.factors[f] else 'baixa' }}</td>{% endfor %}
+          <td>{{ c.assigned }}</td><td>{{ c.opened }}</td><td>{{ c.completed }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card fade-in">
+  <h2>Médias por construto (escala 1–5)</h2>
+  {% if stats.constructs %}
+  {% for c in stats.constructs %}
+  <div class="bar-row">
+    <span class="bar-label">{{ c.label }} <small>({{ c.n }} respostas)</small></span>
+    <div class="bar-track"><div class="bar-fill" style="width: {{ c.pct }}%"></div></div>
+    <span class="bar-value">{{ c.avg }}</span>
+  </div>
+  {% endfor %}
+
+  <h3>Por condição</h3>
+  <p class="muted">Acompanhamento da verificação da manipulação: espera-se HUM maior em C2 e C4
+  (alta humanização) e PER maior em C3 e C4 (alta personalização). Isto é só uma conferência
+  durante a coleta; o teste estatístico é feito depois, no SPSS.</p>
+  <div class="table-scroll">
+    <table class="data-table">
+      <thead>
+        <tr><th>Construto</th>{% for c in stats.conditions %}<th>{{ c.name }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for c in stats.constructs %}
+        <tr>
+          <td>{{ c.label }}</td>
+          {% for cond in stats.conditions %}
+          <td>{{ c.by_condition[cond.name] if c.by_condition[cond.name] is not none else '—' }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="muted">Ainda não há respostas de questionário.</p>
+  {% endif %}
+</div>
+
+<div class="card fade-in">
+  <h2>Bloco IV — Perfil dos participantes</h2>
+  {% for q in stats.profile %}
+  <h3>{{ q.text }}</h3>
+  {% if q.options %}
+  {% for opt in q.options %}
+  <div class="bar-row">
+    <span class="bar-label">{{ opt.label }}</span>
+    <div class="bar-track"><div class="bar-fill bar-fill-alt" style="width: {{ opt.pct }}%"></div></div>
+    <span class="bar-value">{{ opt.pct }}% ({{ opt.count }})</span>
+  </div>
+  {% endfor %}
+  {% else %}
+  <p class="muted">Sem respostas ainda.</p>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endblock %}

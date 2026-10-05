@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+{# Página final. O comprovante é gerado na hora em que o botão é clicado e
+   pode ser baixado de novo enquanto a pessoa tiver o link de retomada. #}
+<div class="card fade-in celebrate">
+  <h1>🎉 Obrigado por participar!</h1>
+  <p>Suas respostas foram registradas com sucesso.</p>
+  <p>Baixe e guarde a cópia do termo que você aceitou, junto com as respostas que você deu:</p>
+  <a class="btn" href="{{ url_for('participant_pdf', token=token) }}">Baixar comprovante (PDF)</a>
+  <a class="btn btn-secondary" href="{{ url_for('index') }}">Voltar ao início</a>
+</div>
+{% endblock %}

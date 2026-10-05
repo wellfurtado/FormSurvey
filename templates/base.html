@@ -1,0 +1,27 @@
+{# Esqueleto comum a todas as páginas. Eu carrego só arquivos locais (style.css
+   e app.js), nada de CDN ou fonte externa: o sistema funciona em rede interna,
+   não depende de terceiros e não expõe o participante a rastreadores. As
+   mensagens "flash" (avisos de uma página para a seguinte) aparecem no topo. #}
+<!doctype html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Pesquisa Chatbot IFAP{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+  {% if steps %}{% include "_stepper.html" %}{% endif %}
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash">
+        {% for message in messages %}<p>{{ message }}</p>{% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

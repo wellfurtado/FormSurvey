@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+{# TALE: mesmo texto do termo aprovado, com visual mais leve para o público
+   de 14 a 17 anos. Não há página de dados depois: o(a) menor não informa
+   nada além da própria decisão. #}
+<div class="tale-page">
+  <div class="mascot-bubble fade-in">
+    <span class="mascot-avatar" aria-hidden="true">👋</span>
+    <div class="mascot-speech">Oi! Que bom que você chegou até aqui!</div>
+  </div>
+
+  {% set playful = true %}
+  {% include "_term_sections.html" %}
+
+  <form method="post" class="decision-panel decision-panel-playful fade-in">
+    <p class="decision-question">🌟 Você gostaria de participar desta pesquisa?</p>
+    <div class="decision-buttons">
+      <button type="submit" name="decision" value="agree" class="btn btn-agree btn-playful">✅ SIM, quero participar!</button>
+      <button type="submit" name="decision" value="disagree" class="btn btn-disagree btn-playful">NÃO quero participar.</button>
+    </div>
+    <p class="decision-note">{{ declaration }}</p>
+  </form>
+</div>
+{% endblock %}

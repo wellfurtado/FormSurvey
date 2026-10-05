@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+{# Página inicial: explica as etapas e oferece os três caminhos. Cada pessoa
+   escolhe o seu; o caminho define qual termo ela vai ler (RCLE, TCLE ou TALE). #}
+<div class="hero fade-in">
+  <h1>Chatbot Institucional com IA na Educação Pública</h1>
+  <p class="subtitle">Pesquisa de mestrado — IFAP Campus Santana / PPGE-UFRRJ</p>
+</div>
+
+<div class="flow-diagram fade-in" aria-hidden="true">
+  <div class="flow-step" style="--delay:0"><span class="flow-icon">📄</span><span>Termo</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-step" style="--delay:1"><span class="flow-icon">💬</span><span>Chatbot</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-step" style="--delay:2"><span class="flow-icon">📋</span><span>Questionário</span></div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-step" style="--delay:3"><span class="flow-icon">📄</span><span>Comprovante em PDF</span></div>
+</div>
+
+<div class="choices">
+  <a class="btn" href="{{ url_for('guardian_consent') }}">Sou responsável e quero autorizar um(a) menor de idade a participar</a>
+  <a class="btn" href="{{ url_for('adult_consent') }}">Sou maior de 18 anos e quero participar da pesquisa</a>
+  <a class="btn btn-secondary" href="{{ url_for('minor_code_entry') }}">Sou menor de idade e já tenho um código de acesso</a>
+</div>
+{% endblock %}

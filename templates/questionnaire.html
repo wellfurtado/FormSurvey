@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+{# Questionário montado a partir de questions.py: os Blocos I-III em escala
+   Likert (botões redondos de 1 a 5) e o Bloco IV (perfil) em listas de
+   seleção. Nenhum campo tem "required": responder é sempre opcional. O
+   "name" de cada campo é o código do item (HUM1, PER2...), que é a chave
+   gravada no banco e o nome da coluna no CSV. #}
+<div class="card fade-in">
+  <h1>📋 Questionário</h1>
+  <p>Você não precisa responder nenhuma pergunta que não quiser.</p>
+</div>
+
+<form method="post">
+  {% for block_name, items in blocks %}
+  <section class="questionnaire-block fade-in">
+    <h2>{{ block_name }}</h2>
+    <div class="likert-legend">
+      {% for value, label in likert_scale %}<span><strong>{{ value }}</strong> {{ label }}</span>{% endfor %}
+    </div>
+
+    {% for code, text in items %}
+    <div class="likert-row">
+      <p class="likert-text">{{ text }}</p>
+      <div class="likert-scale" role="radiogroup" aria-label="{{ text }}">
+        {% for value, label in likert_scale %}
+        <input type="radio" id="{{ code }}_{{ value }}" name="{{ code }}" value="{{ value }}">
+        <label for="{{ code }}_{{ value }}" title="{{ label }}">{{ value }}</label>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+  {% endfor %}
+
+  <section class="questionnaire-block fade-in">
+    <h2>{{ profile[0] }}</h2>
+    {% for code, text, options in profile[1] %}
+    <div class="field">
+      <label for="{{ code }}">{{ text }}</label>
+      <select id="{{ code }}" name="{{ code }}">
+        <option value="">Prefiro não responder</option>
+        {% for opt in options %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+      </select>
+    </div>
+    {% endfor %}
+  </section>
+
+  <button type="submit" class="btn btn-block">Enviar respostas</button>
+</form>
+{% endblock %}

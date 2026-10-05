@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+{# Mostrada a quem recusou ou não autorizou. Nesse caso o sistema gravou só a
+   decisão e a data, sem nenhum dado pessoal. #}
+<div class="card fade-in">
+  <h1>Decisão registrada</h1>
+  <p>Sua decisão de não participar (ou não autorizar a participação) foi registrada. Obrigado pelo seu tempo.</p>
+  <a class="btn btn-secondary" href="{{ url_for('index') }}">Voltar ao início</a>
+</div>
+{% endblock %}

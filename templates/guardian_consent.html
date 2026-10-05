@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "_term_sections.html" %}
+
+<form method="post" class="decision-panel fade-in">
+  <p class="decision-declaration">{{ declaration }}</p>
+  <div class="decision-buttons">
+    <button type="submit" name="decision" value="agree" class="btn btn-agree">✅ Autorizo a participação</button>
+    <button type="submit" name="decision" value="disagree" class="btn btn-disagree">Não autorizo</button>
+  </div>
+</form>
+{% endblock %}

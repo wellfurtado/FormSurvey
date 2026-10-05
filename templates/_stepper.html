@@ -1,0 +1,13 @@
+{# Barra de progresso no topo da página. Recebe "steps" (lista de nomes) e
+   "step" (posição atual, começando em 1). Ajuda o participante a saber
+   quanto falta, o que reduz a desistência no meio da pesquisa. #}
+<nav class="stepper" aria-label="Etapas da pesquisa">
+  {% for label in steps %}
+  {% set i = loop.index %}
+  <div class="stepper-item {{ 'is-active' if i == step else '' }} {{ 'is-done' if i < step else '' }}">
+    <span class="stepper-dot">{{ '✓' if i < step else i }}</span>
+    <span class="stepper-label">{{ label }}</span>
+  </div>
+  {% if not loop.last %}<span class="stepper-line {{ 'is-done' if i < step else '' }}"></span>{% endif %}
+  {% endfor %}
+</nav>

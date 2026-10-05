@@ -1,0 +1,30 @@
+# =============================================================================
+# Serviço systemd do FormSurvey: mantém o sistema no ar e o reinicia sozinho
+# se ele cair ou se o servidor for reiniciado.
+#
+# Instalação:  cp formsurvey.service /etc/systemd/system/
+#              systemctl daemon-reload && systemctl enable --now formsurvey
+#
+# - Roda como o usuário www-data (sem privilégios), nunca como root.
+# - Gunicorn com 2 processos ("workers"): suficiente para dezenas de
+#   participantes simultâneos, já que cada página é respondida em milissegundos.
+# - Escuta direto na porta 80 de todas as interfaces (0.0.0.0). A capability
+#   CAP_NET_BIND_SERVICE permite usar a porta 80 sem ser root.
+#   Quando o Nginx com HTTPS entrar na frente (INSTALL.md, seção 7), troque
+#   para "-b 127.0.0.1:8000" para que só o Nginx fale com o Gunicorn.
+# =============================================================================
+[Unit]
+Description=FormSurvey - consentimento e coleta de dados da pesquisa
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/formsurvey
+Environment=HOME=/opt/formsurvey
+ExecStart=/opt/formsurvey/venv/bin/gunicorn -w 2 -b 0.0.0.0:80 app:app
+Restart=on-failure
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

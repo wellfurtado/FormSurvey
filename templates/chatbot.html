@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+{# Etapa do chatbot. O botão "Abrir" passa por /pesquisa/<token>/chatbot/abrir,
+   que registra o horário e redireciona para o chatbot da condição sorteada.
+   O endereço do chatbot nunca aparece nesta página. O botão do questionário
+   só aparece depois que o chatbot foi aberto pelo menos uma vez. #}
+<div class="card fade-in">
+  <h1>💬 Converse com o chatbot</h1>
+  <p>Abra o chatbot e faça uma breve simulação de atendimento (5 a 10 minutos): pergunte, por exemplo,
+  sobre o calendário acadêmico, matrícula ou serviços do campus. Depois, volte para esta página e
+  continue para o questionário.</p>
+
+  <a class="btn" href="{{ url_for('open_chatbot', token=token) }}" target="_blank" rel="noopener"
+     data-reveal="#to-questionnaire">Abrir o chatbot ↗</a>
+
+  {# Se o chatbot ainda não foi aberto, o botão do questionário começa
+     escondido e o app.js o mostra assim que "Abrir o chatbot" é clicado. #}
+  <div id="to-questionnaire" {{ 'hidden' if not chatbot_opened }}>
+    <a class="btn btn-secondary" href="{{ url_for('questionnaire', token=token) }}">Já conversei, continuar para o questionário →</a>
+  </div>
+</div>
+
+<div class="card fade-in">
+  <p class="muted" style="margin-top:0">Se a internet cair ou você precisar sair no meio da pesquisa, guarde
+  este link para continuar exatamente de onde parou (ele é pessoal, não compartilhe):</p>
+  <div class="copy-row">
+    <input type="text" id="resume_link" value="{{ resume_link }}" readonly>
+    <button type="button" class="btn btn-secondary" data-copy="#resume_link">Copiar</button>
+  </div>
+</div>
+{% endblock %}

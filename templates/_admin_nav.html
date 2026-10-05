@@ -1,0 +1,7 @@
+{# Menu do painel administrativo. A exportação é um link comum: como exige o
+   login, o navegador já envia o cookie da sessão do pesquisador. #}
+<nav class="admin-nav">
+  <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if request.endpoint == 'admin_dashboard' }}">📊 Painel</a>
+  <a href="{{ url_for('export_csv') }}">⬇️ Exportar CSV</a>
+  <a href="{{ url_for('admin_logout') }}" class="admin-nav-logout">Sair</a>
+</nav>

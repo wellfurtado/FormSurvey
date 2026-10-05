@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+{# Última página do responsável: o link/código de uso único do(a) menor, o
+   comprovante do TCLE e o convite para participar também (como adulto). #}
+<div class="card fade-in">
+  <h1>✅ Autorização registrada</h1>
+  <p>Compartilhe o link abaixo com o(a) menor autorizado(a). Ele só pode ser usado
+  <strong>uma única vez</strong>. Mesmo com a sua autorização, o(a) menor decide se quer ou não participar.</p>
+
+  <div class="field">
+    <label for="access_link">Link de acesso do(a) menor</label>
+    <div class="copy-row">
+      <input type="text" id="access_link" value="{{ access_link }}" readonly>
+      <button type="button" class="btn btn-secondary" data-copy="#access_link">Copiar</button>
+    </div>
+  </div>
+
+  <p class="muted">Se preferir enviar só o código (por telefone, por exemplo), o(a) menor pode
+  digitá-lo na página inicial em "Sou menor de idade e já tenho um código de acesso":</p>
+  <div class="code-box">{{ code }}</div>
+</div>
+
+<div class="card fade-in">
+  <h2>📄 Sua cópia do termo</h2>
+  <p>Baixe e guarde a cópia do Termo de Consentimento que você acabou de autorizar. Ela fica disponível
+  apenas agora, nesta página.</p>
+  <a class="btn" href="{{ url_for('guardian_pdf') }}">Baixar comprovante (PDF)</a>
+</div>
+
+<div class="card fade-in">
+  <h2>Quer participar também?</h2>
+  <p class="muted">A autorização acima vale só para o(a) menor. Se você também quiser conversar com o chatbot
+  e responder ao questionário, participe como adulto — você verá o termo próprio para isso.</p>
+  <a class="btn btn-secondary" href="{{ url_for('adult_consent') }}">Participar como adulto →</a>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{# Trecho reaproveitado pelas três páginas de termo (RCLE, TCLE e TALE).
+   Recebe: title, subtitle, sections (lista de {icon, heading, paragraphs}) e,
+   opcionalmente, playful (visual mais leve usado no TALE). O texto vem de
+   terms.py, o mesmo usado no PDF. #}
+<header class="term-header fade-in">
+  <h1>{{ title }}</h1>
+  <p class="subtitle">{{ subtitle }}</p>
+</header>
+
+{% for s in sections %}
+<section class="term-section {{ 'term-section-playful' if playful }} fade-in" style="--delay: {{ loop.index0 }}">
+  <h2><span class="term-icon" aria-hidden="true">{{ s.icon }}</span> {{ s.heading }}</h2>
+  {% for p in s.paragraphs %}<p>{{ p }}</p>{% endfor %}
+</section>
+{% endfor %}

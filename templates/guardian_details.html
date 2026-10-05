@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+{# Página 2 do responsável (só aparece depois de "Autorizo"). Peço apenas o
+   nome do responsável e o vínculo — o equivalente à assinatura do TCLE.
+   O nome do(a) menor não é pedido: o TCLE promete não coletá-lo. #}
+<div class="card fade-in">
+  <h1>Seus dados</h1>
+  <p>Autorização registrada. Para concluir o registro do termo, informe seu nome e o seu vínculo
+  com o(a) menor. O nome do(a) menor <strong>não</strong> é solicitado.</p>
+
+  <form method="post">
+    <div class="field">
+      <label for="guardian_name">Seu nome (responsável legal)</label>
+      <input type="text" id="guardian_name" name="guardian_name" value="{{ form.guardian_name or '' }}" required>
+    </div>
+    <div class="field">
+      <label for="relationship">Grau de parentesco / vínculo com o(a) menor</label>
+      <input type="text" id="relationship" name="relationship" value="{{ form.relationship or '' }}" required
+             placeholder="Ex.: mãe, pai, avó, tutor legal">
+    </div>
+    <button type="submit" class="btn">Gerar o link de acesso do(a) menor →</button>
+  </form>
+</div>
+{% endblock %}
