@@ -1022,6 +1022,7 @@ baseado em inteligência artificial generativa (**Claude, da Anthropic**, por me
 Claude Code).
 
 **Como a IA foi usada:**
+- correções de segurança;
 - escrita dos testes automatizados;
 - apoio na configuração e na implantação do servidor.
 
