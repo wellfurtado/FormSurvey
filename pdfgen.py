@@ -100,12 +100,28 @@ def adult_pdf(consent_at, answers):
     return _render(body + footer + _answers_block(answers))
 
 
-def guardian_pdf(guardian_name, relationship, access_code, consent_on):
-    """Comprovante do responsável: TCLE completo + quem autorizou + código.
+def guardian_pdf(guardian_name, relationship, access_code, access_link, consent_on):
+    """Comprovante do responsável: acesso do(a) menor + TCLE completo + quem
+    autorizou.
+
+    Coloco o link e o código de acesso NO INÍCIO do documento, porque é a
+    informação que o responsável vai procurar quando for repassar o acesso
+    ao(à) menor. O texto explica que o acesso é de uso único e deixa de
+    funcionar depois que o(a) menor decide.
 
     O(A) menor é identificado(a) pelo código de acesso, e não pelo nome, que
     o sistema não coleta. O responsável sabe a quem repassou cada código.
     """
+    access = (
+        "ACESSO DO(A) MENOR À PESQUISA\n"
+        "Repasse ao(à) menor o link abaixo (ou o código, que pode ser digitado na página "
+        'inicial da pesquisa, em "Sou menor de idade e já tenho um código de acesso").\n'
+        f"Link de acesso: {access_link}\n"
+        f"Código de acesso: {access_code}\n"
+        "O acesso é de uso único: depois que o(a) menor decidir se quer ou não participar, "
+        "o link e o código deixam de funcionar. Guarde este documento até lá e não o "
+        "compartilhe com outras pessoas.\n\n"
+    )
     body = terms.flatten(terms.TCLE_TITLE, terms.TCLE_SUBTITLE, terms.TCLE_SECTIONS)
     footer = (
         "\n\nDADOS DO REGISTRO\n"
@@ -115,7 +131,7 @@ def guardian_pdf(guardian_name, relationship, access_code, consent_on):
         f"Código de acesso do(a) menor: {access_code}\n"
         f"Data do registro: {consent_on}\n"
     )
-    return _render(body + footer)
+    return _render(access + body + footer)
 
 
 def minor_pdf(consent_at, answers):

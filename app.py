@@ -358,7 +358,14 @@ def guardian_code_page():
 
 @app.route("/responsavel/comprovante.pdf")
 def guardian_pdf():
-    """Gero na hora o PDF do TCLE com os dados da autorização.
+    """Gero na hora o PDF do TCLE com os dados da autorização e com o link e o
+    código de acesso do(a) menor.
+
+    Coloco o link e o código no PDF porque a página que os mostra só existe
+    enquanto o navegador do responsável continuar aberto (ela depende da
+    sessão). Se ele fechasse sem copiar, o código se perderia e seria preciso
+    autorizar de novo. Com o PDF salvo, o responsável pode repassar o acesso
+    depois, com calma.
 
     O PDF não fica salvo em lugar nenhum: é montado a partir do banco e
     entregue ao navegador. Só quem tem a sessão da autorização (o próprio
@@ -372,7 +379,11 @@ def guardian_pdf():
         "JOIN guardians g ON g.id = a.guardian_id WHERE a.code = ?",
         (code,),
     )
-    pdf_bytes = pdfgen.guardian_pdf(row["guardian_name"], row["relationship"], code, fmt_date(row["created_on"]))
+    pdf_bytes = pdfgen.guardian_pdf(
+        row["guardian_name"], row["relationship"], code,
+        url_for("minor_access_link", code=code, _external=True),
+        fmt_date(row["created_on"]),
+    )
     return _pdf_response(pdf_bytes, "termo_consentimento_responsavel.pdf")
 
 
@@ -420,9 +431,11 @@ def minor_access_link(code):
 def minor_consent():
     """Mostro o TALE (linguagem acessível) e os botões SIM / NÃO.
 
-    Em qualquer das duas decisões o código é CONSUMIDO (used = 1): ele não
-    pode ser reaproveitado, nem para mudar a decisão, nem por outra pessoa.
-    Se o(a) menor diz SIM, crio o participante anônimo e sigo para o chatbot.
+    Em qualquer das duas decisões o código é CONSUMIDO (used = 1) e expira
+    para sempre: o código e o link de acesso (inclusive o que está no PDF do
+    responsável) deixam de funcionar. Ele não pode ser reaproveitado, nem para
+    mudar a decisão, nem por outra pessoa. Se o(a) menor diz SIM, crio o
+    participante anônimo e sigo para o chatbot.
     """
     code = session.get("pending_code")
     row = db.query_one("SELECT * FROM access_codes WHERE code = ?", (code,)) if code else None
@@ -432,11 +445,22 @@ def minor_consent():
 
     if request.method == "POST":
         agreed = request.form.get("decision") == "agree"
-        db.execute(
-            "UPDATE access_codes SET used = 1, minor_agreed = ?, used_on = ? WHERE code = ?",
+        # Consumo o código em UMA única operação, com a condição "used = 0"
+        # dentro do próprio UPDATE. Por quê: se duas pessoas abrirem o mesmo
+        # link e clicarem em "SIM" quase no mesmo instante, as duas passariam
+        # pela checagem lá de cima (ambas leram used = 0 antes de qualquer uma
+        # gravar). O SQLite executa um UPDATE por vez, então só o primeiro
+        # encontra used = 0 e altera a linha; o segundo não altera nada
+        # (rowcount = 0) e é recusado. Assim o "uso único" é garantido pelo
+        # banco, e não só pela ordem em que as requisições chegam.
+        cur = db.execute(
+            "UPDATE access_codes SET used = 1, minor_agreed = ?, used_on = ? WHERE code = ? AND used = 0",
             (int(agreed), today(), code),
         )
         session.pop("pending_code", None)
+        if cur.rowcount == 0:
+            flash("Este código já foi utilizado. Cada código só pode ser usado uma vez.")
+            return redirect(url_for("minor_code_entry"))
         if not agreed:
             return redirect(url_for("declined"))
         token = new_participant("minor")

@@ -21,9 +21,12 @@
 </div>
 
 <div class="card fade-in">
+  {# O PDF traz, no início, o link e o código de acesso do(a) menor: assim o
+     responsável não perde o acesso se fechar esta página antes de repassá-lo. #}
   <h2>📄 Sua cópia do termo</h2>
-  <p>Baixe e guarde a cópia do Termo de Consentimento que você acabou de autorizar. Ela fica disponível
-  apenas agora, nesta página.</p>
+  <p>Baixe e guarde a cópia do Termo de Consentimento que você acabou de autorizar. Ela traz também
+  <strong>o link e o código de acesso do(a) menor</strong>, para você repassar depois, se preferir.
+  O download fica disponível apenas agora, nesta página.</p>
   <a class="btn" href="{{ url_for('guardian_pdf') }}">Baixar comprovante (PDF)</a>
 </div>
 

@@ -17,6 +17,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from collections import Counter
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -228,6 +229,58 @@ class FlowTest(unittest.TestCase):
         row = self.query_one("SELECT * FROM access_codes WHERE code = ?", (code,))
         self.assertEqual((row["used"], row["minor_agreed"]), (1, 0))
         self.assertEqual(self.query_one("SELECT COUNT(*) n FROM participants")["n"], before)
+
+    def _authorize(self):
+        """Faço uma autorização de responsável e devolvo o código gerado."""
+        client = self.app.test_client()
+        client.post("/responsavel", data={"decision": "agree"})
+        resp = client.post("/responsavel/detalhes", data={"guardian_name": "Rita", "relationship": "Tia"},
+                           follow_redirects=True)
+        return re.search(rb'class="code-box">([0-9a-f]{32})<', resp.data).group(1).decode()
+
+    def test_simultaneous_use_of_code_admits_only_one(self):
+        """Duas pessoas abrem o mesmo link e clicam em SIM quase ao mesmo tempo:
+        só uma pode entrar. Para reproduzir a corrida, faço a segunda
+        requisição "ler" o código ainda como não usado (como aconteceria se ela
+        tivesse lido o banco antes de a primeira gravar)."""
+        code = self._authorize()
+        first, second = self.app.test_client(), self.app.test_client()
+        first.get(f"/menor/acesso/{code}")
+        second.get(f"/menor/acesso/{code}")
+        before = self.query_one("SELECT COUNT(*) n FROM participants")["n"]
+
+        resp = first.post("/menor/assentimento", data={"decision": "agree"})
+        self.assertIn("/pesquisa/", resp.location)
+
+        stale_row = {"code": code, "used": 0}
+        with mock.patch.object(app_module.db, "query_one", return_value=stale_row):
+            resp = second.post("/menor/assentimento", data={"decision": "agree"})
+        self.assertTrue(resp.location.endswith("/menor"))
+
+        self.assertEqual(self.query_one("SELECT COUNT(*) n FROM participants")["n"], before + 1)
+        row = self.query_one("SELECT used, minor_agreed FROM access_codes WHERE code = ?", (code,))
+        self.assertEqual((row["used"], row["minor_agreed"]), (1, 1))
+
+    def test_guardian_pdf_contains_access_link_and_code(self):
+        """O PDF do responsável traz o link e o código, para que o acesso não
+        se perca se a página for fechada."""
+        import pdfgen
+        captured = {}
+
+        def fake_render(text):
+            captured["text"] = text
+            return b"%PDF-falso"
+
+        client = self.app.test_client()
+        client.post("/responsavel", data={"decision": "agree"})
+        resp = client.post("/responsavel/detalhes", data={"guardian_name": "Rita", "relationship": "Tia"},
+                           follow_redirects=True)
+        code = re.search(rb'class="code-box">([0-9a-f]{32})<', resp.data).group(1).decode()
+        with mock.patch.object(pdfgen, "_render", side_effect=fake_render):
+            client.get("/responsavel/comprovante.pdf")
+        self.assertIn(f"Código de acesso: {code}", captured["text"])
+        self.assertIn(f"/menor/acesso/{code}", captured["text"])
+        self.assertIn("uso único", captured["text"])
 
     def test_guardian_declines_gives_no_code(self):
         before = self.query_one("SELECT COUNT(*) n FROM access_codes")["n"]

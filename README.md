@@ -48,6 +48,7 @@ CEP/UFRRJ).
 5. [Banco de dados](#5-banco-de-dados)
 6. [Privacidade, ética e LGPD](#6-privacidade-ética-e-lgpd)
 7. [Segurança](#7-segurança)
+   - [Proteções do código de acesso do menor](#proteções-do-código-de-acesso-do-menor)
 8. [Arquitetura e organização do código](#8-arquitetura-e-organização-do-código)
 9. [Instalação, testes e operação](#9-instalação-testes-e-operação)
 10. [Como adaptar para outra pesquisa](#10-como-adaptar-para-outra-pesquisa)
@@ -217,7 +218,7 @@ sequenceDiagram
         Note over S: guarda o código na sessão
         S-->>R: link e código do menor, botão do PDF, convite
         R->>S: Baixar comprovante
-        S-->>R: PDF do TCLE (nome, vínculo, código, data)
+        S-->>R: PDF: link e código de acesso + TCLE (nome, vínculo, data)
     end
 ```
 
@@ -227,7 +228,8 @@ sequenceDiagram
    vínculo com o(a) menor*.
 3. **Página 3:** o **link de acesso** do menor (com botão *Copiar*), o **código** de 32
    caracteres (para quem prefere passar por telefone), o botão **Baixar comprovante
-   (PDF)** e o convite *"Quer participar também? Participe como adulto"*.
+   (PDF)**, que também traz o link e o código, e o convite *"Quer participar também?
+   Participe como adulto"*.
 
 **O que é gravado:** em `guardians`, o nome, o vínculo, a decisão e a data; em
 `access_codes`, um código novo ligado a essa autorização.
@@ -243,6 +245,11 @@ sequenceDiagram
 - *O comprovante é baixado na hora*, e não enviado por e-mail, para não precisar
   guardar o e-mail de ninguém. Ele só pode ser baixado na mesma sessão em que a
   autorização foi feita.
+- *O link e o código de acesso também vão no PDF*, logo no início do documento. A
+  página que os mostra depende da sessão do navegador: se o responsável a fechasse sem
+  copiar o link, o acesso se perderia e ele precisaria autorizar de novo. Com o PDF
+  salvo, ele pode repassar o acesso depois, com calma. O PDF avisa que o acesso é de
+  uso único e que não deve ser compartilhado com outras pessoas.
 - *Se o responsável quiser responder à pesquisa*, ele passa pelo **RCLE**, como
   qualquer adulto. O TCLE autoriza a participação **do menor**; quem participa por si
   mesmo precisa consentir com o termo próprio para isso. Por esse caminho, o
@@ -269,13 +276,17 @@ sequenceDiagram
         S-->>M: TALE em linguagem acessível + SIM / NÃO
         alt NÃO quero participar
             M->>S: decision = disagree
-            S->>DB: UPDATE access_codes SET used=1, minor_agreed=0, used_on
+            S->>DB: UPDATE access_codes SET used=1, minor_agreed=0 WHERE used=0
             S-->>M: "Decisão registrada"
         else SIM, quero participar
             M->>S: decision = agree
-            S->>DB: UPDATE access_codes SET used=1, minor_agreed=1, used_on
-            S->>DB: INSERT participants (token, kind=minor, condition=sorteada)
-            S-->>M: redireciona para /pesquisa/{token}/chatbot
+            S->>DB: UPDATE access_codes SET used=1, minor_agreed=1 WHERE used=0
+            alt Outra pessoa usou o código um instante antes (nenhuma linha alterada)
+                S-->>M: "Este código já foi utilizado"
+            else Código consumido agora
+                S->>DB: INSERT participants (token, kind=minor, condition=sorteada)
+                S-->>M: redireciona para /pesquisa/{token}/chatbot
+            end
         end
     end
 ```
@@ -295,8 +306,15 @@ linha nova em `participants`.
   sistema respeita isso: mesmo com o código, o menor pode dizer NÃO.
 - *O código é de uso único e é gasto na decisão*, seja SIM ou NÃO, e não ao abrir a
   página. Assim o menor pode abrir o link, ler com calma, fechar e voltar depois sem
-  perder o código. Mas, depois de decidir, ninguém consegue reaproveitá-lo: nem para
-  mudar a decisão, nem para outra pessoa participar no lugar dele.
+  perder o código. Mas, depois de decidir, o código **expira para sempre**: ele e o
+  link de acesso (inclusive o que está no PDF do responsável) deixam de funcionar.
+  Ninguém consegue reaproveitá-lo, nem para mudar a decisão, nem para outra pessoa
+  participar no lugar do menor.
+- *O uso único é garantido pelo banco de dados.* O código é marcado como usado em uma
+  única operação, que só tem efeito se ele ainda estiver livre (`UPDATE ... WHERE
+  used = 0`). Se duas pessoas abrirem o mesmo link e clicarem em SIM quase no mesmo
+  instante, só a primeira entra; a segunda recebe "Este código já foi utilizado".
+  Sem isso, as duas poderiam passar pela checagem antes de qualquer uma gravar.
 - *O código é um UUID v4* (122 bits aleatórios, 32 caracteres hexadecimais). Não dá
   para adivinhar o código de outra pessoa testando sequências, como seria com 1, 2, 3...
 - *O menor não informa nada além da decisão.*
@@ -458,8 +476,9 @@ A página final agradece e oferece o botão **Baixar comprovante (PDF)**. O PDF 
 - **as respostas dadas**: cada item seguido da resposta marcada, por exemplo
   *"Resposta: 4 - Concordo Parcialmente"*.
 
-O comprovante do **responsável** (seção 2.3) traz o TCLE, o nome, o vínculo, o código
-de acesso do menor e a data.
+O comprovante do **responsável** (seção 2.3) traz, no início, o link e o código de
+acesso do menor, com o aviso de que o acesso é de uso único; em seguida, o TCLE, o
+nome, o vínculo e a data.
 
 **Por quê:**
 - A Resolução CNS nº 510/2016 e o Ofício Circular nº 2/2021/CONEP orientam que o
@@ -816,6 +835,47 @@ sistema estiver só na rede interna, ele funciona em HTTP.
 O controle está no código de uso único do menor e na separação entre identificação e
 respostas, e não em contas de usuário, que exigiriam coletar dados pessoais.
 
+### Proteções do código de acesso do menor
+
+O código de acesso é a peça mais sensível do sistema: é ele que liga a autorização do
+responsável ao assentimento do menor. O ciclo de vida de um código é este:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Livre: responsável autoriza (TCLE)
+    Livre --> Livre: link aberto ou código digitado, TALE lido sem decidir
+    Livre --> Usado: menor decide SIM ou NÃO
+    Usado --> [*]: expira para sempre (link e código recusados)
+```
+
+**Riscos e proteções:**
+
+| Risco | Proteção | Onde |
+|---|---|---|
+| Adivinhar o código de outro menor | Código UUID v4 com 122 bits aleatórios (32 caracteres). Testar códigos ao acaso levaria bilhões de anos | `generate_unique_code()` |
+| Reaproveitar um código (mudar a decisão, ou outra pessoa participar) | O código é consumido na decisão e expira para sempre; o link e o código passam a ser recusados | `minor_consent()` |
+| Duas pessoas usarem o mesmo link ao mesmo tempo | Consumo atômico no banco (`UPDATE ... WHERE used = 0`): só a primeira entra | `minor_consent()`, teste `test_simultaneous_use_of_code_admits_only_one` |
+| Abrir o TALE sem autorização | O TALE só abre com um código válido e ainda livre | `minor_consent()` |
+| Menor entrar pelo caminho de adulto, sem autorização | Declaração obrigatória de 18 anos ou mais no RCLE | `adult_consent()` |
+| Responsável perder o código ao fechar a página | Link e código vão no PDF do responsável | `guardian_pdf()` |
+| Terceiros verem o código depois | A página e o PDF com o código só abrem na sessão do navegador do responsável que autorizou | `guardian_code_page()`, `guardian_pdf()` |
+| O código ligar o menor às respostas | Nenhuma coluna liga `access_codes` a `participants`; a autorização guarda só a data | `schema.sql`, seção [6.2](#62-como-as-respostas-ficam-separadas-da-identidade) |
+
+**Limites (o que o sistema não garante):**
+
+- **Quem usa o código não é verificado.** Qualquer pessoa com o link ou o código pode
+  abrir o TALE e decidir, inclusive o próprio responsável no lugar do menor. Verificar
+  a identidade exigiria coletar dados pessoais do menor, o que o TCLE não permite. É a
+  mesma limitação de um termo em papel entregue a alguém. O TALE se dirige ao menor e
+  afirma que "a decisão final é SUA", e o TCLE atribui ao responsável a entrega do
+  acesso ao menor autorizado.
+- **Código não usado não expira por tempo.** Ele continua válido até o menor decidir.
+  O painel mostra quantos códigos estão pendentes.
+- **Até ser usado, o código é um acesso válido.** Quem tiver o PDF do responsável, ou o
+  link, pode usá-lo. Por isso o PDF avisa para não compartilhá-lo com outras pessoas.
+- **O link fica no histórico do navegador** de quem o abriu. Depois do uso, isso não
+  tem mais importância, porque o código já expirou.
+
 ---
 
 ## 8. Arquitetura e organização do código
@@ -930,12 +990,14 @@ e acesse <http://127.0.0.1:5000>. O banco é criado sozinho em `instance/`.
 python -m unittest tests.test_flow -v
 ```
 
-São 18 testes de ponta a ponta. Eles usam um banco temporário e conferem, entre
+São 20 testes de ponta a ponta. Eles usam um banco temporário e conferem, entre
 outras coisas:
 
 - os três caminhos completos (adulto, responsável → menor) e as recusas;
 - a declaração de maioridade, o código de uso único e a trava do questionário antes do
   chatbot;
+- o **uso simultâneo do mesmo código** (só uma pessoa entra) e a presença do link e do
+  código no PDF do responsável;
 - o **balanceamento do sorteio** (23 participantes → grupos com diferença máxima de 1);
 - a **separação entre respostas e identidade** (nenhuma chave entre os grupos, nenhuma
   hora nos registros de consentimento);

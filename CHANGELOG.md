@@ -3,6 +3,21 @@
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e as
 versões seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.9.1] — 2026-10-06
+
+### Adicionado
+- O PDF do responsável traz, logo no início, o **link e o código de acesso do menor**,
+  com o aviso de que o acesso é de uso único. Assim o acesso não se perde se a página
+  for fechada antes de ser repassado.
+- Documentação das proteções e dos limites do código de acesso do menor (README,
+  seção 7).
+
+### Corrigido
+- **Uso simultâneo do mesmo código:** se duas pessoas abrissem o mesmo link e clicassem
+  em SIM quase ao mesmo tempo, as duas poderiam participar. O código agora é consumido
+  em uma única operação no banco (`UPDATE ... WHERE used = 0`): só a primeira entra, e
+  o código expira para sempre no momento da decisão.
+
 ## [0.9.0] — 2026-10-05
 
 Versão preparada para a coleta: implementa o delineamento experimental da dissertação
