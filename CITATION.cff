@@ -5,7 +5,7 @@ title: "FormSurvey: sistema de consentimento eletrônico e coleta de dados para 
 version: 0.9.0
 date-released: 2026-10-05
 license: GPL-3.0-only
-repository-code: "https://github.com/wellfurtado/chatif"
+repository-code: "https://github.com/wellfurtado/FormSurvey"
 authors:
   - family-names: Damasceno
     given-names: Wellington Furtado

@@ -19,12 +19,6 @@ em PDF (pdfgen.py, por meio de flatten()). Uma única fonte de verdade.
 ponytail: não reproduzo a diagramação do papel (timbre, brasão, linhas de
 assinatura). Os blocos de "Declaração do pesquisador" (assinatura em papel)
 não aparecem para o participante, porque não se aplicam ao fluxo eletrônico.
-
-ATENÇÃO (ver README, seção "Pendências com o CEP"): o texto aprovado cita o
-"LimeSurvey" como plataforma do questionário; o sistema usado é o FormSurvey.
-Não alterei essa menção aqui porque mudar o texto aprovado exige comunicação
-ao CEP. A única frase fora do texto aprovado é a nota eletrônica do RCLE
-(RCLE_ELECTRONIC_NOTE), que descreve como o sistema entrega a cópia.
 """
 import config
 

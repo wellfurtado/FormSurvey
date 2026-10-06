@@ -53,7 +53,7 @@ CEP/UFRRJ).
 10. [Como adaptar para outra pesquisa](#10-como-adaptar-para-outra-pesquisa)
 11. [Decisões de projeto](#11-decisões-de-projeto)
 12. [O FormSurvey como Produto Técnico-Tecnológico](#12-o-formsurvey-como-produto-técnico-tecnológico)
-13. [Pendências antes da coleta](#13-pendências-antes-da-coleta)
+13. [Uso de inteligência artificial](#13-uso-de-inteligência-artificial)
 
 ---
 
@@ -1015,30 +1015,28 @@ O que ficou de fora, de propósito, e por quê:
 
 ---
 
-## 13. Pendências antes da coleta
+## 13. Uso de inteligência artificial
 
-**Com o CEP:**
+O desenvolvimento do FormSurvey contou com o apoio de um assistente de programação
+baseado em inteligência artificial generativa (**Claude, da Anthropic**, por meio do
+Claude Code).
 
-- [ ] **Menção ao "LimeSurvey"** no RCLE e no TCLE (seções "Como as informações serão
-      obtidas?" e "Quais são os riscos?"). O sistema usado é o FormSurvey. Não alterei o
-      texto aprovado; isso precisa de comunicação ou emenda ao CEP.
-- [ ] **Nota eletrônica do RCLE:** troquei "enviamos uma cópia em PDF para o seu
-      e-mail" por "você poderá baixar uma cópia em PDF". Se essa frase fizer parte do
-      texto aprovado, comunique a mudança ao CEP.
-- [ ] **Conversas do chatbot:** se o chatbot gravar o texto das conversas, confirme se o
-      protocolo aprovado cobre isso. Os termos falam só em "não haverá gravação de áudio,
-      vídeo ou registro fotográfico".
+**Como a IA foi usada:**
+- escrita dos testes automatizados;
+- apoio na configuração e na implantação do servidor.
 
-**Na dissertação:**
+**Responsabilidade do autor:**
+- definição dos requisitos, do delineamento experimental e do instrumento de coleta;
+- todas as decisões éticas e metodológicas, incluindo a aderência aos termos
+  aprovados pelo CEP;
+- revisão, aprovação e publicação de cada alteração;
+- validação do sistema em funcionamento.
 
-- [ ] Seção 3.4.1: trocar "não há relação direta" por pseudonimização (sugestão na
-      seção [6.3](#63-pseudonimização-e-não-anonimização)); remover o envio por e-mail
-      e o SMTP do Google; atualizar as figuras 7 a 10 com os diagramas deste README.
-- [ ] Seção 5: incluir o FormSurvey como PTT.
+A IA foi uma ferramenta de apoio. **A autoria, as decisões e a responsabilidade pelo
+sistema e pelos dados da pesquisa são do autor.** A IA não teve acesso aos dados de
+participantes: o desenvolvimento ocorreu antes do início da coleta, com o banco de
+dados vazio.
 
-**No sistema e no servidor:**
-
-- [ ] Endereços reais do chatbot (`CHATBOT_URL_C1` a `C4`).
-- [ ] Domínio público com HTTPS e `FORCE_HTTPS=1` (INSTALL.md, seção 7).
-- [ ] Teste-piloto com 5 a 10 pessoas, percorrendo os três caminhos.
-- [ ] Publicar a versão 1.0 no Zenodo (DOI) antes do primeiro participante real.
+O chatbot avaliado na pesquisa também é um sistema de IA, mas é o **objeto de
+estudo**, e não uma ferramenta de desenvolvimento. Ele é um sistema separado, e o
+seu uso está informado aos participantes nos termos de consentimento.

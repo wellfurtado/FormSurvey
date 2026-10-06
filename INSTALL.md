@@ -26,7 +26,7 @@ para uma pesquisa com centenas de participantes.
 ## 2. Baixar o código
 
 ```bash
-git clone https://github.com/wellfurtado/chatif.git /opt/formsurvey
+git clone https://github.com/wellfurtado/FormSurvey.git /opt/formsurvey
 cd /opt/formsurvey
 ```
 
