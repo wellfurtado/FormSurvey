@@ -52,9 +52,7 @@ CEP/UFRRJ).
 8. [Arquitetura e organização do código](#8-arquitetura-e-organização-do-código)
 9. [Instalação, testes e operação](#9-instalação-testes-e-operação)
 10. [Como adaptar para outra pesquisa](#10-como-adaptar-para-outra-pesquisa)
-11. [Decisões de projeto](#11-decisões-de-projeto)
-12. [O FormSurvey como Produto Técnico-Tecnológico](#12-o-formsurvey-como-produto-técnico-tecnológico)
-13. [Uso de inteligência artificial](#13-uso-de-inteligência-artificial)
+11. [Uso de inteligência artificial](#11-uso-de-inteligência-artificial)
 
 ---
 
@@ -1032,52 +1030,7 @@ em `templates/index.html`. Se não tiver condições experimentais, deixe uma s�
 
 ---
 
-## 11. Decisões de projeto
-
-O que ficou de fora, de propósito, e por quê:
-
-- **Contas de usuário para participantes:** exigiriam coletar e-mail ou outro
-  identificador, o que os termos não permitem. O link de retomada resolve a
-  continuidade sem identificar ninguém.
-- **Envio de comprovante por e-mail:** existia na versão 0.1 e foi removido. Exigia
-  guardar o e-mail ligado às respostas e uma senha de SMTP no servidor. O download do
-  PDF entrega a cópia sem esses riscos.
-- **Nome do menor:** existia na versão 0.1 e foi removido, porque o TCLE promete não
-  coletá-lo.
-- **Biblioteca de gráficos no painel:** barras em CSS bastam para acompanhar a coleta.
-  A análise de verdade é feita no SPSS e no R.
-- **ORM (SQLAlchemy) e migrações automáticas:** cinco tabelas e consultas simples não
-  justificam a camada extra. Mudanças de estrutura são raras e acontecem antes da
-  coleta.
-- **Captcha:** exigiria um serviço externo (que rastreia o participante) ou atrapalharia
-  a acessibilidade. O risco de robôs é baixo em uma pesquisa divulgada por canais
-  institucionais, e respostas rápidas demais podem ser filtradas pelas durações do CSV.
-- **Bloquear quem responde duas vezes:** sem identificar a pessoa, não há como saber se
-  duas participações são da mesma pessoa. É uma limitação comum a questionários
-  anônimos e deve ser mencionada na dissertação.
-
----
-
-## 12. O FormSurvey como Produto Técnico-Tecnológico
-
-| Item (tipologia CAPES) | Descrição |
-|---|---|
-| **Tipo** | Software / Aplicativo |
-| **Título** | FormSurvey: sistema de consentimento eletrônico e coleta de dados para experimentos com condições sorteadas |
-| **Finalidade** | Permitir que pesquisas experimentais com seres humanos em ambiente virtual registrem o consentimento (inclusive de menores, com a sequência TCLE → TALE), sorteiem as condições de forma balanceada, encaminhem ao estímulo e coletem os dados, em conformidade com as Resoluções CNS nº 466/2012 e 510/2016, o Ofício Circular nº 2/2021/CONEP e a LGPD |
-| **Público** | Pesquisadores e programas de pós-graduação, especialmente de instituições públicas; comitês de ética, como referência de fluxo eletrônico de consentimento |
-| **Aplicabilidade** | Em uso na coleta da dissertação (IFAP Campus Santana); reutilizável em outras pesquisas mudando os termos, o questionário e as condições (seção [10](#10-como-adaptar-para-outra-pesquisa)) |
-| **Replicabilidade** | Código aberto (GPL-3.0), documentado, com instalação automatizada, testes e dependências fixadas; roda em um servidor Linux modesto (1 vCPU, 2 GB de RAM) sem serviços pagos |
-| **Inovação** | Reúne em um só sistema o fluxo TCLE → TALE com código de uso único, o sorteio balanceado entre condições e a separação entre identificação e respostas, verificada por testes automáticos, sem coletar dados pessoais de quem responde |
-| **Complexidade** | Média: aplicação web com banco relacional, fluxos condicionais por perfil, delineamento experimental, geração de documentos e requisitos éticos e legais |
-| **Impacto** | Padroniza e torna auditável a coleta experimental; reduz custo (sem plataformas pagas) e risco (sem dados pessoais de quem responde); protege menores com a sequência obrigatória de concordâncias |
-| **Abrangência** | Local (IFAP), com potencial regional (Rede Federal de Educação Profissional) e nacional |
-| **Disponibilidade** | Repositório público no GitHub; versão arquivada com DOI no Zenodo (a publicar) |
-| **Registro** | Registro de Programa de Computador no INPI (a avaliar com o NIT do IFAP) |
-
----
-
-## 13. Uso de inteligência artificial
+## 11. Uso de inteligência artificial
 
 O desenvolvimento do FormSurvey contou com o apoio de um assistente de programação
 baseado em inteligência artificial generativa (**Claude, da Anthropic**, por meio do
