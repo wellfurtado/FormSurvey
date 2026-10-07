@@ -944,7 +944,7 @@ há framework de frontend, banco externo, fila nem serviço pago.
 │   └── app.js               animação, botões "Copiar", revelar botão do questionário
 ├── tests/test_flow.py   ← testes automáticos de ponta a ponta
 ├── dados/codebook.csv   ← dicionário de variáveis do CSV (gerado pelo sistema)
-├── docs/diagramas/      ← figuras em draw.io da versão 0.1 (usadas na dissertação)
+├── docs/diagramas/      ← figuras da dissertação (Mermaid, SVG e PNG)
 ├── install.sh           ← instalação no servidor
 ├── backup.sh            ← backup diário do banco
 ├── formsurvey.service   ← serviço systemd
@@ -954,10 +954,13 @@ há framework de frontend, banco externo, fila nem serviço pago.
 └── CITATION.cff         ← como citar
 ```
 
-> Os arquivos em `docs/diagramas/` mostram a **versão 0.1**, com e-mail, tabela de
-> menores e `ref_id`. Os diagramas atualizados são os deste README (Mermaid), que o
-> GitHub desenha automaticamente. Para exportá-los como imagem, cole o código em
-> <https://mermaid.live>.
+> As figuras para a dissertação estão em `docs/diagramas/`, cada uma em três formatos:
+> `.mmd` (código Mermaid, editável), `.svg` (vetorial, ideal para o Word) e `.png` (alta
+> resolução). São elas: `casos_de_uso`, `fluxo_decisao`, `modelo_dados` e
+> `sequencia_menor`. O fluxo de decisão e o modelo de dados são os mesmos diagramas das
+> seções 1 e 5.1 deste README. Para gerar as imagens de novo depois de editar um `.mmd`:
+> `npx -p @mermaid-js/mermaid-cli mmdc -i arquivo.mmd -o arquivo.svg -b white` (e
+> `-o arquivo.png -s 3` para o PNG).
 
 ---
 

@@ -1,0 +1,31 @@
+%% Fluxo de decisão completo do FormSurvey (versão 0.9), para os três perfis.
+%% Caixas com borda dupla = gravações no banco. Mesmo diagrama da seção 1 do README.
+flowchart TD
+    A["Página inicial<br/>(escolha do caminho)"] --> B{"Quem é você?"}
+
+    B -- "Maior de 18 anos" --> AD["RCLE<br/>termo completo + decisão<br/>+ declaração de 18 anos ou mais"]
+    B -- "Responsável por menor" --> RS["TCLE<br/>termo completo + decisão"]
+    B -- "Menor com código" --> MC["Entrada do código<br/>ou link direto"]
+
+    AD -- "Não concordo" --> RAD[["adults: agreed = 0"]] --> FIM1["Decisão registrada<br/>(nenhum dado pessoal)"]
+    AD -- "Concordo + 18 anos" --> CAD[["adults: agreed = 1"]] --> P
+
+    RS -- "Não autorizo" --> RRS[["guardians: agreed = 0"]] --> FIM1
+    RS -- "Autorizo" --> RD["Dados do responsável<br/>nome + vínculo"]
+    RD --> CRS[["guardians: agreed = 1<br/>access_codes: novo código"]]
+    CRS --> RC["Link/código do menor<br/>+ comprovante do TCLE (PDF)<br/>+ convite para participar como adulto"]
+    RC -.->|"repassa o link ou o código"| MC
+    RC -.->|"quer participar também"| AD
+
+    MC --> MT["TALE<br/>termo em linguagem acessível + decisão"]
+    MT -- "NÃO" --> RMT[["access_codes: used = 1,<br/>minor_agreed = 0"]] --> FIM1
+    MT -- "SIM" --> CMT[["access_codes: used = 1,<br/>minor_agreed = 1"]] --> P
+
+    P[["participants: novo participante anônimo<br/>+ condição sorteada C1, C2, C3 ou C4"]]
+    P --> CH["Página do chatbot<br/>+ link de retomada"]
+    CH -- "Abrir o chatbot" --> OP[["chatbot_opened_at"]] --> EXT["Chatbot da condição<br/>(sistema externo, nova aba)"]
+    EXT -.->|"volta para a aba da pesquisa"| Q
+    CH -- "Já conversei" --> Q["Questionário<br/>Blocos I a IV"]
+    Q --> QS[["questionnaire_started_at"]]
+    Q -- "Enviar respostas" --> QR[["responses + completed_at"]]
+    QR --> T["Conclusão<br/>+ comprovante em PDF<br/>(termo + respostas)"]

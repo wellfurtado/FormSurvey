@@ -1,0 +1,41 @@
+%% Modelo de dados do FormSurvey (versão 0.9). Mesmo diagrama da seção 5.1 do README.
+%% Repare: nenhuma relação liga participants/responses a adults/guardians/access_codes.
+erDiagram
+    guardians ||--o{ access_codes : "autoriza (1 código por autorização)"
+    participants ||--o{ responses : "responde"
+
+    adults {
+        INTEGER id PK
+        INTEGER agreed "1 concordou, 0 recusou"
+        TEXT created_on "AAAA-MM-DD (só a data)"
+    }
+    guardians {
+        INTEGER id PK
+        TEXT guardian_name "NULL se recusou"
+        TEXT relationship "NULL se recusou"
+        INTEGER agreed "1 autorizou, 0 não autorizou"
+        TEXT created_on "AAAA-MM-DD"
+    }
+    access_codes {
+        TEXT code PK "UUID v4 hex, 32 caracteres"
+        INTEGER guardian_id FK
+        INTEGER used "0 livre, 1 usado"
+        INTEGER minor_agreed "NULL, 1 SIM, 0 NÃO"
+        TEXT created_on "AAAA-MM-DD"
+        TEXT used_on "AAAA-MM-DD"
+    }
+    participants {
+        INTEGER id PK "aparece no CSV"
+        TEXT token UK "UUID v4, link de retomada"
+        TEXT kind "adult ou minor"
+        TEXT condition "C1 a C4"
+        TEXT created_at "UTC ISO 8601"
+        TEXT chatbot_opened_at
+        TEXT questionnaire_started_at
+        TEXT completed_at
+    }
+    responses {
+        INTEGER participant_id PK,FK
+        TEXT question_code PK "HUM1, PER2..."
+        TEXT value "1 a 5 ou texto da opção"
+    }

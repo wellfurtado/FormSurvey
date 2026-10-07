@@ -1,0 +1,55 @@
+%% Diagrama de casos de uso do FormSurvey (versão 0.9).
+%% Atores à esquerda (participantes) e à direita (pesquisador e chatbot).
+%% "include" = o caso de uso sempre executa o outro junto.
+flowchart LR
+    AD(["Adulto"])
+    RS(["Responsável"])
+    MN(["Menor<br/>(14 a 17 anos)"])
+    PQ(["Pesquisador<br/>(administrador)"])
+    CB(["Chatbot<br/>(sistema externo)"])
+
+    subgraph FS["Sistema FormSurvey"]
+        direction TB
+        UC1(["Declarar 18 anos ou mais e<br/>concordar ou recusar (RCLE)"])
+        UC2(["Autorizar ou recusar a<br/>participação do menor (TCLE)"])
+        UC3(["Gerar código de acesso<br/>de uso único (UUID)"])
+        UC4(["Baixar comprovante do TCLE<br/>com link e código do menor"])
+        UC5(["Entrar com o link ou o código<br/>e assentir ou recusar (TALE)"])
+        UC6(["Sortear a condição<br/>experimental (C1 a C4)"])
+        UC7(["Conversar com o chatbot<br/>da condição sorteada"])
+        UC8(["Responder ao<br/>questionário (Anexo I)"])
+        UC9(["Baixar comprovante<br/>(termo + respostas)"])
+        UC10(["Acompanhar a coleta no painel<br/>(adesão, condições, médias)"])
+        UC11(["Exportar respostas<br/>(CSV para SPSS e R)"])
+    end
+
+    AD --- UC1
+    AD --- UC7
+    AD --- UC8
+    AD --- UC9
+
+    RS --- UC2
+    RS --- UC4
+
+    MN --- UC5
+    MN --- UC7
+    MN --- UC8
+    MN --- UC9
+
+    UC2 -. "«include»" .-> UC3
+    UC1 -. "«include»" .-> UC6
+    UC5 -. "«include»" .-> UC6
+
+    UC7 --- CB
+    UC10 --- PQ
+    UC11 --- PQ
+
+    classDef participante fill:#dbe8f7,stroke:#5b7fb0,color:#111
+    classDef sistema fill:#d9ead3,stroke:#6a9f58,color:#111
+    classDef admin fill:#fde5c8,stroke:#d49a3a,color:#111
+    classDef ator fill:#ffffff,stroke:#555,color:#111
+    class UC1,UC2,UC4,UC5,UC7,UC8,UC9 participante
+    class UC3,UC6 sistema
+    class UC10,UC11 admin
+    class AD,RS,MN,PQ,CB ator
+    style FS fill:#fafafa,stroke:#888,color:#111

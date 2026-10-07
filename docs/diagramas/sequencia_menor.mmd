@@ -1,0 +1,45 @@
+%% Diagrama de sequência: do TCLE (responsável) ao comprovante do menor (versão 0.9).
+%% Mostra a geração, a validação e o consumo do código de uso único,
+%% o sorteio da condição, a ida ao chatbot e o questionário.
+sequenceDiagram
+    autonumber
+    actor R as Responsável
+    participant S as FormSurvey (Flask)
+    participant DB as Banco (SQLite)
+    actor M as Menor
+    participant C as Chatbot da condição
+
+    R->>S: TCLE: autoriza + informa nome e vínculo
+    S->>DB: INSERT guardians (nome, vínculo, agreed=1, data)
+    S->>S: generate_unique_code() = uuid4().hex
+    S->>DB: INSERT access_codes (code, guardian_id, data)
+    S-->>R: link /menor/acesso/{code} + código
+    R->>S: Baixar comprovante
+    S-->>R: PDF: link e código de acesso + TCLE
+    Note over R,M: O responsável repassa o link (ou o código) ao menor
+
+    M->>S: GET /menor/acesso/{code}
+    S->>DB: SELECT access_codes WHERE code = ?
+    DB-->>S: código existe e used = 0
+    S-->>M: TALE (sem nome, nada é pedido ao menor)
+    M->>S: POST decision = agree
+    S->>DB: UPDATE access_codes SET used=1 ... WHERE used=0
+    alt nenhuma linha alterada (outra pessoa usou o código um instante antes)
+        S-->>M: "Este código já foi utilizado"
+    else código consumido agora: link e código expiram
+        S->>S: new_participant(): token = uuid4() e sorteio balanceado da condição
+        S->>DB: INSERT participants (token, kind=minor, condition)
+        S-->>M: redireciona para /pesquisa/{token}/chatbot
+        M->>S: Abrir o chatbot
+        S->>DB: chatbot_opened_at = agora
+        S-->>M: redireciona para CHATBOT_URL_Cx?token={token}
+        M->>C: conversa (5 a 10 min)
+        M->>S: Já conversei: abre o questionário
+        S->>DB: questionnaire_started_at = agora
+        M->>S: POST respostas
+        S->>DB: INSERT responses + completed_at = agora
+        S-->>M: Página final
+        M->>S: Baixar comprovante
+        S-->>M: PDF: TALE + respostas
+    end
+    Note over S,DB: participants e responses não se ligam a guardians nem a access_codes
