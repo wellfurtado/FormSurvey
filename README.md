@@ -3,8 +3,8 @@
 **Sistema web de consentimento eletrônico e coleta de dados para experimentos com
 condições sorteadas.**
 
-O FormSurvey reúne, em um único sistema, as etapas de uma pesquisa experimental
-com seres humanos em ambiente virtual:
+Criei o FormSurvey para reunir, em um único sistema, as etapas de uma pesquisa
+experimental com seres humanos em ambiente virtual:
 
 1. registro eletrônico do consentimento (RCLE), da autorização do responsável (TCLE)
    e do assentimento do menor (TALE), conforme as Resoluções CNS nº 466/2012 e
@@ -58,9 +58,9 @@ CEP/UFRRJ).
 
 ## 1. Visão geral do processo
 
-O diagrama abaixo mostra **todas as etapas** do sistema, para os três perfis de
-participante. Cada caixa corresponde a uma página; as caixas com borda dupla são
-gravações no banco de dados.
+No diagrama abaixo mostro **todas as etapas** do sistema, para os três perfis de
+participante. Cada caixa corresponde a uma página; as caixas com borda dupla são os
+momentos em que gravo algo no banco de dados.
 
 ```mermaid
 flowchart TD
@@ -94,12 +94,12 @@ flowchart TD
     QR --> T["Conclusão<br/>+ comprovante em PDF<br/>(termo + respostas)"]
 ```
 
-**Em resumo:** a pessoa lê o termo e decide. Se concorda, vira um *participante
-anônimo* com uma condição experimental sorteada, conversa com o chatbot daquela
-condição, responde ao questionário e baixa o comprovante. Quem recusa, em qualquer
-ponto, sai sem informar nenhum dado pessoal.
+**Em resumo:** a pessoa lê o termo e decide. Se concorda, eu a registro como
+*participante anônimo* e sorteio uma condição experimental; ela conversa com o chatbot
+daquela condição, responde ao questionário e baixa o comprovante. Quem recusa, em
+qualquer ponto, sai sem informar nenhum dado pessoal.
 
-### As rotas (endereços) do sistema
+### As rotas (endereços) que criei
 
 | Etapa | Endereço | Método | O que faz |
 |---|---|---|---|
@@ -126,7 +126,7 @@ ponto, sai sem informar nenhum dado pessoal.
 
 ## 2. Etapa por etapa
 
-Para cada etapa descrevo **o que o participante vê**, **o que o sistema grava** e
+Para cada etapa descrevo **o que o participante vê**, **o que eu gravo** e
 **por que** fiz assim. O código correspondente está em [`app.py`](app.py), na mesma
 ordem, com comentários explicando cada decisão.
 
@@ -141,7 +141,7 @@ Questionário → Comprovante) e três botões:
 - *Sou maior de 18 anos e quero participar da pesquisa*;
 - *Sou menor de idade e já tenho um código de acesso*.
 
-**Nada é gravado.** A escolha do botão só define qual termo a pessoa vai ler.
+**Não gravo nada.** A escolha do botão só define qual termo a pessoa vai ler.
 
 ### 2.2 Caminho do adulto (RCLE)
 
@@ -174,21 +174,21 @@ seções com ícones (objetivo, procedimentos, riscos, benefícios, participaç�
 voluntária, sigilo, remuneração, contatos e CAAE). No fim, a declaração do termo, a
 caixa *"Declaro que tenho 18 anos ou mais"* e os botões *Concordo* / *Não concordo*.
 
-**O que é gravado:**
+**O que eu gravo:**
 - na tabela `adults`, só a decisão (`agreed` = 1 ou 0) e a **data** (sem hora);
 - se concordou, uma linha nova em `participants`, com um token aleatório e a condição
   sorteada (seção [2.5](#25-sorteio-da-condição-experimental)).
 
-**Por quê:**
-- *Nenhum dado pessoal é pedido.* O RCLE promete que "não serão coletados nome, CPF,
-  e-mail ou matrícula". Por isso não existe uma página "seus dados" para o adulto.
-- *A declaração de maioridade* impede que um menor entre pelo caminho errado, sem a
-  autorização do responsável que a pesquisa exige. Ela só é exigida de quem concorda:
-  quem recusa não precisa declarar nada. O navegador bloqueia o envio sem a marcação
-  (`required`), e o servidor confere de novo, porque a validação do navegador pode ser
-  contornada.
-- *Termo e decisão na mesma página:* a pessoa não consegue decidir sem ter o termo
-  inteiro à frente.
+**Por que fiz assim:**
+- *Não peço nenhum dado pessoal.* O RCLE promete que "não serão coletados nome, CPF,
+  e-mail ou matrícula". Por isso não criei uma página "seus dados" para o adulto.
+- *Exijo a declaração de maioridade* para impedir que um menor entre pelo caminho
+  errado, sem a autorização do responsável que a pesquisa exige. Só a exijo de quem
+  concorda: quem recusa não precisa declarar nada. O navegador bloqueia o envio sem a
+  marcação (`required`), e eu confiro de novo no servidor, porque a validação do
+  navegador pode ser contornada.
+- *Coloquei termo e decisão na mesma página* para que a pessoa não consiga decidir sem
+  ter o termo inteiro à frente.
 
 ### 2.3 Caminho do responsável (TCLE)
 
@@ -229,30 +229,31 @@ sequenceDiagram
    (PDF)**, que também traz o link e o código, e o convite *"Quer participar também?
    Participe como adulto"*.
 
-**O que é gravado:** em `guardians`, o nome, o vínculo, a decisão e a data; em
+**O que eu gravo:** em `guardians`, o nome, o vínculo, a decisão e a data; em
 `access_codes`, um código novo ligado a essa autorização.
 
-**Por quê:**
-- *Decisão antes dos dados:* quem não autoriza não informa nada. O nome só é pedido
-  depois do "Autorizo", e uma marca na sessão impede pular direto para a página 2.
-- *O nome do responsável e o vínculo* são o equivalente eletrônico da assinatura do
-  TCLE: registram **quem** autorizou.
-- *O nome do menor não é pedido.* O TCLE promete que "não serão coletados nome, CPF,
+**Por que fiz assim:**
+- *Peço a decisão antes dos dados:* quem não autoriza não informa nada. Só peço o nome
+  depois do "Autorizo", e uma marca que guardo na sessão impede pular direto para a
+  página 2.
+- *Peço o nome do responsável e o vínculo* porque são o equivalente eletrônico da
+  assinatura do TCLE: registram **quem** autorizou.
+- *Não peço o nome do menor.* O TCLE promete que "não serão coletados nome, CPF,
   e-mail ou matrícula do(a) menor". O menor é identificado, no comprovante do
   responsável, pelo código de acesso, e o responsável sabe a quem entregou cada código.
-- *O comprovante é baixado na hora*, e não enviado por e-mail, para não precisar
+- *Entrego o comprovante para download na hora*, e não por e-mail, para não precisar
   guardar o e-mail de ninguém. Ele só pode ser baixado na mesma sessão em que a
   autorização foi feita.
-- *O link e o código de acesso também vão no PDF*, logo no início do documento. A
+- *Coloquei o link e o código de acesso também no PDF*, logo no início do documento. A
   página que os mostra depende da sessão do navegador: se o responsável a fechasse sem
   copiar o link, o acesso se perderia e ele precisaria autorizar de novo. Com o PDF
   salvo, ele pode repassar o acesso depois, com calma. O PDF avisa que o acesso é de
   uso único e que não deve ser compartilhado com outras pessoas.
-- *Se o responsável quiser responder à pesquisa*, ele passa pelo **RCLE**, como
+- *Se o responsável quiser responder à pesquisa*, eu o encaminho ao **RCLE**, como
   qualquer adulto. O TCLE autoriza a participação **do menor**; quem participa por si
   mesmo precisa consentir com o termo próprio para isso. Por esse caminho, o
   responsável também participa sem nenhum dado pessoal ligado às respostas.
-- *Cada autorização gera um código.* Quem tem dois filhos participantes autoriza duas
+- *Gero um código por autorização.* Quem tem dois filhos participantes autoriza duas
   vezes e recebe dois códigos.
 
 ### 2.4 Caminho do menor (TALE)
@@ -293,35 +294,34 @@ sequenceDiagram
 pensado para estudantes de 14 a 17 anos) e os botões *SIM, quero participar!* /
 *NÃO quero participar*.
 
-**O que é gravado:** na própria linha do código, em `access_codes`, que ele foi usado
+**O que eu gravo:** na própria linha do código, em `access_codes`, que ele foi usado
 (`used = 1`), a decisão do menor (`minor_agreed`) e a data. Se o menor disse SIM, uma
 linha nova em `participants`.
 
-**Por quê:**
-- *A sequência TCLE → TALE é obrigatória.* O TALE só abre com um código gerado por
-  uma autorização, e o código fica preso a essa autorização (`guardian_id`).
-- *A decisão final é do menor.* O texto do TALE diz "a decisão final é SUA", e o
-  sistema respeita isso: mesmo com o código, o menor pode dizer NÃO.
-- *O código é de uso único e é gasto na decisão*, seja SIM ou NÃO, e não ao abrir a
-  página. Assim o menor pode abrir o link, ler com calma, fechar e voltar depois sem
+**Por que fiz assim:**
+- *Tornei obrigatória a sequência TCLE → TALE.* O TALE só abre com um código gerado
+  por uma autorização, e eu prendo o código a essa autorização (`guardian_id`).
+- *A decisão final é do menor.* O texto do TALE diz "a decisão final é SUA", e eu
+  respeito isso: mesmo com o código, o menor pode dizer NÃO.
+- *Gasto o código na decisão*, seja SIM ou NÃO, e não ao abrir a página. Assim o menor pode abrir o link, ler com calma, fechar e voltar depois sem
   perder o código. Mas, depois de decidir, o código **expira para sempre**: ele e o
   link de acesso (inclusive o que está no PDF do responsável) deixam de funcionar.
   Ninguém consegue reaproveitá-lo, nem para mudar a decisão, nem para outra pessoa
   participar no lugar do menor.
-- *O uso único é garantido pelo banco de dados.* O código é marcado como usado em uma
+- *Garanto o uso único no próprio banco de dados.* Marco o código como usado em uma
   única operação, que só tem efeito se ele ainda estiver livre (`UPDATE ... WHERE
   used = 0`). Se duas pessoas abrirem o mesmo link e clicarem em SIM quase no mesmo
   instante, só a primeira entra; a segunda recebe "Este código já foi utilizado".
   Sem isso, as duas poderiam passar pela checagem antes de qualquer uma gravar.
-- *O código é um UUID v4* (122 bits aleatórios, 32 caracteres hexadecimais). Não dá
+- *Uso um UUID v4 como código* (122 bits aleatórios, 32 caracteres hexadecimais). Não dá
   para adivinhar o código de outra pessoa testando sequências, como seria com 1, 2, 3...
-- *O menor não informa nada além da decisão.*
+- *Não peço ao menor nada além da decisão.*
 
 ### 2.5 Sorteio da condição experimental
 
 **Função:** `assign_condition()` em [`app.py`](app.py) · **Configuração:** `CONDITIONS` em [`config.py`](config.py)
 
-A pesquisa usa um **delineamento fatorial 2x2 entre sujeitos**: cada participante é
+Minha pesquisa usa um **delineamento fatorial 2x2 entre sujeitos**: cada participante é
 exposto a **uma** de quatro versões do chatbot, que combinam dois fatores em dois
 níveis.
 
@@ -332,8 +332,8 @@ níveis.
 | **C3** | baixa (0) | alta (1) | Linguagem neutra; identidade visual e termos do IFAP |
 | **C4** | alta (1) | alta (1) | Linguagem cordial + identidade do IFAP |
 
-O sorteio acontece **no momento em que o participante concorda com o termo** (adulto
-ou menor), dentro de `new_participant()`. Ele é **balanceado**:
+Faço o sorteio **no momento em que o participante concorda com o termo** (adulto ou
+menor), dentro de `new_participant()`, e de forma **balanceada**:
 
 ```mermaid
 flowchart LR
@@ -350,8 +350,8 @@ flowchart LR
 participante vai para C2 ou C3, sorteado entre as duas. Assim, a diferença entre o
 maior e o menor grupo nunca passa de 1.
 
-**Por quê:**
-- *Balanceado e não um sorteio simples:* a ANOVA 2x2 da dissertação pede de 40 a 50
+**Por que fiz assim:**
+- *Escolhi o balanceamento, e não um sorteio simples:* a ANOVA 2x2 da dissertação pede de 40 a 50
   participantes por célula. Com um sorteio simples (cada pessoa com 25% de chance para
   cada grupo), 200 participantes poderiam terminar em 60/45/52/43, por puro acaso. O
   balanceamento elimina esse risco, e o desempate aleatório impede que a ordem de
@@ -360,10 +360,10 @@ maior e o menor grupo nunca passa de 1.
   ocupa a vaga da sua condição. Se eu contasse só os concluídos, várias pessoas que
   chegassem ao mesmo tempo iriam todas para o mesmo grupo. A desistência por condição
   aparece no painel (seção [3](#3-painel-administrativo)).
-- *`random.SystemRandom`:* usa a aleatoriedade do sistema operacional, que não pode
-  ser prevista. O gerador padrão do Python é previsível se a semente for conhecida.
-- *O participante não escolhe nem vê a lista de condições.* Ele só recebe o endereço
-  do chatbot da sua.
+- *Uso `random.SystemRandom`:* ele tira a aleatoriedade do sistema operacional, que
+  não pode ser prevista. O gerador padrão do Python é previsível se a semente for conhecida.
+- *Não mostro a lista de condições ao participante:* ele só recebe o endereço do
+  chatbot da sua.
 
 ### 2.6 Chatbot: ida e volta
 
@@ -371,7 +371,7 @@ maior e o menor grupo nunca passa de 1.
 **Template:** `chatbot.html`
 
 O chatbot é um **sistema separado** (outro produto da pesquisa). O FormSurvey não
-conversa com ele; apenas encaminha o participante e registra os horários.
+conversa com ele: eu apenas encaminho o participante e registro os horários.
 
 ```mermaid
 sequenceDiagram
@@ -404,16 +404,16 @@ depois que o chatbot foi aberto.
 | Para que serve o token | Se o chatbot gravar as conversas, pode associá-las ao participante anônimo e, portanto, à condição, sem nenhum dado pessoal |
 | Como o participante volta | Pela aba do FormSurvey, que continua aberta. O chatbot não precisa saber o endereço de volta |
 
-**Por quê:**
-- *Passar por `/abrir` em vez de ligar direto ao chatbot* permite (1) registrar o
+**Por que fiz assim:**
+- *Faço o botão passar por `/abrir`*, e não ligar direto ao chatbot, para (1) registrar o
   horário de exposição ao estímulo, que comprova que ela aconteceu, e (2) não mostrar
   na página os endereços das quatro versões.
-- *O questionário só abre depois que o chatbot foi aberto:* responder sobre um chatbot
-  que não se viu invalidaria a resposta para o experimento. A trava existe no
+- *Só libero o questionário depois que o chatbot foi aberto:* responder sobre um
+  chatbot que não se viu invalidaria a resposta para o experimento. Faço essa trava no
   servidor; esconder o botão é só conforto visual.
-- *Registrar só a primeira abertura:* se a pessoa clicar de novo, o horário inicial
+- *Registro só a primeira abertura:* se a pessoa clicar de novo, o horário inicial
   não muda.
-- *Limitação conhecida:* o FormSurvey registra que o chatbot foi **aberto**, não
+- *Limitação conhecida:* eu registro que o chatbot foi **aberto**, não
   quanto a pessoa **conversou**. O tempo entre abrir o chatbot e abrir o questionário
   (`seg_chatbot` no CSV) é uma aproximação. A medida exata, se necessária, vem dos
   registros do próprio chatbot, cruzados pelo token.
@@ -423,7 +423,7 @@ depois que o chatbot foi aberto.
 **Rota:** `/pesquisa/<token>/questionario` · **Definição dos itens:** [`questions.py`](questions.py) ·
 **Template:** `questionnaire.html`
 
-O instrumento é o Anexo I da dissertação. Ele tem quatro blocos e 40 itens:
+O instrumento é o Anexo I da minha dissertação, com quatro blocos e 40 itens:
 
 | Bloco | Construto | Código | Itens | Formato |
 |---|---|---|---|---|
@@ -442,23 +442,23 @@ A escala Likert é: **1** Discordo Totalmente · **2** Discordo Parcialmente · 
 **4** Concordo Parcialmente · **5** Concordo Totalmente. O texto de cada item está no
 [codebook](dados/codebook.csv) e em [`questions.py`](questions.py).
 
-**O que é gravado:** uma linha em `responses` por item respondido (código do item e
+**O que eu gravo:** uma linha em `responses` por item respondido (código do item e
 valor), o horário em que o questionário foi aberto pela primeira vez
 (`questionnaire_started_at`) e o horário de envio (`completed_at`).
 
-**Por quê:**
-- *Nenhum item é obrigatório.* Os termos garantem o "direito de não responder a
+**Por que fiz assim:**
+- *Não torno nenhum item obrigatório.* Os termos garantem o "direito de não responder a
   qualquer questão sem necessidade de justificativa". Item em branco não gera linha, e
   o CSV informa quantos ficaram em branco (`itens_em_branco`), para servir de filtro
   na análise.
-- *O servidor só aceita valores que existem no instrumento* (1 a 5 nos itens Likert,
-  as opções listadas no perfil). Qualquer outro valor, enviado por alguém que editou o
-  formulário no navegador, é descartado, como se o item estivesse em branco.
-- *O questionário é definido como dados (`questions.py`), não escrito no HTML:* uma
+- *No servidor, só aceito valores que existem no instrumento* (1 a 5 nos itens Likert,
+  as opções listadas no perfil). Descarto qualquer outro valor, enviado por alguém que
+  editou o formulário no navegador, como se o item estivesse em branco.
+- *Defini o questionário como dados (`questions.py`), e não direto no HTML:* uma
   única definição alimenta a página, a validação, o PDF, o CSV, o codebook e o painel.
-- *Os códigos curtos (HUM1, PER2...)* viram os nomes das colunas no CSV, prontos para
+- *Usei códigos curtos (HUM1, PER2...)*, que viram os nomes das colunas no CSV, prontos para
   o SPSS e o R, e o prefixo identifica o construto.
-- *Responder uma vez só:* depois do envio, o mesmo link leva à página de conclusão, e
+- *Permito responder uma vez só:* depois do envio, o mesmo link leva à página de conclusão, e
   não ao questionário de novo.
 
 ### 2.8 Conclusão e comprovante em PDF
@@ -466,7 +466,7 @@ valor), o horário em que o questionário foi aberto pela primeira vez
 **Rotas:** `/pesquisa/<token>/concluido` e `/pesquisa/<token>/comprovante.pdf` ·
 **Gerador:** [`pdfgen.py`](pdfgen.py)
 
-A página final agradece e oferece o botão **Baixar comprovante (PDF)**. O PDF contém:
+Na página final, agradeço e ofereço o botão **Baixar comprovante (PDF)**. O PDF contém:
 
 - o **texto integral do termo aceito** (RCLE para adulto, TALE para menor);
 - os **dados do registro**: a decisão, a declaração de maioridade (adulto) e a
@@ -478,26 +478,26 @@ O comprovante do **responsável** (seção 2.3) traz, no início, o link e o có
 acesso do menor, com o aviso de que o acesso é de uso único; em seguida, o TCLE, o
 nome, o vínculo e a data.
 
-**Por quê:**
+**Por que fiz assim:**
 - A Resolução CNS nº 510/2016 e o Ofício Circular nº 2/2021/CONEP orientam que o
   participante de pesquisa em ambiente virtual receba uma cópia do registro de
   consentimento.
-- *Baixar em vez de receber por e-mail:* o envio por e-mail exigiria guardar o e-mail,
-  que os termos prometem não coletar, e ligá-lo às respostas. O download entrega a
-  cópia sem que o sistema precise saber quem a pessoa é.
-- *O PDF é gerado na hora* e não fica gravado em lugar nenhum. O participante pode
+- *Ofereço o download, e não o envio por e-mail:* o envio por e-mail exigiria guardar
+  o e-mail, que os termos prometem não coletar, e ligá-lo às respostas. O download
+  entrega a cópia sem que eu precise saber quem a pessoa é.
+- *Gero o PDF na hora*, e ele não fica gravado em lugar nenhum. O participante pode
   baixá-lo de novo enquanto tiver o link de retomada.
-- *O texto vem do mesmo `terms.py` da tela:* o que o participante leu e o que está no
+- *Uso o mesmo `terms.py` da tela:* o que o participante leu e o que está no
   comprovante são exatamente iguais.
 
 ### 2.9 Link de retomada
 
-A partir do momento em que a pessoa concorda, todas as páginas da pesquisa levam o
-**token** no endereço: `/pesquisa/<token>/...`. O token é um UUID v4, sorteado e
+A partir do momento em que a pessoa concorda, coloco o **token** no endereço de todas
+as páginas da pesquisa: `/pesquisa/<token>/...`. O token é um UUID v4, sorteado e
 impossível de adivinhar. Ele funciona como um *link de retomada*: se a internet cair,
 o celular desligar ou a pessoa trocar de aparelho, basta abrir o mesmo link para
-continuar exatamente de onde parou. A página do chatbot mostra esse link com um botão
-*Copiar*.
+continuar exatamente de onde parou. Mostro esse link na página do chatbot, com um
+botão *Copiar*.
 
 ```mermaid
 stateDiagram-v2
@@ -509,13 +509,13 @@ stateDiagram-v2
     Criado --> Criado: tentar abrir o questionário volta para o chatbot
 ```
 
-**Regras:** token inexistente gera página 404; participante que já concluiu é sempre
-levado à página final, e não consegue responder de novo.
+**Regras:** para um token inexistente, mostro a página 404; quem já concluiu, levo
+sempre à página final, e não consegue responder de novo.
 
 **Limitação aceita:** o link é pessoal, mas quem o recebe pode repassá-lo. Como em
 qualquer link de convite, isso não tem solução técnica sem pedir identificação, e
-pedir identificação contrariaria os termos. A página avisa: *"ele é pessoal, não
-compartilhe"*.
+pedir identificação contrariaria os termos. Por isso aviso na página: *"ele é pessoal,
+não compartilhe"*.
 
 ---
 
@@ -523,7 +523,7 @@ compartilhe"*.
 
 **Rota:** `/admin` (com senha) · **Cálculos:** [`stats.py`](stats.py) · **Template:** `admin_dashboard.html`
 
-O painel serve para **acompanhar a coleta enquanto ela acontece**. Ele mostra só
+Criei o painel para **acompanhar a coleta enquanto ela acontece**. Nele mostro só
 números agregados, nunca uma linha individual:
 
 | Quadro | O que mostra | Para que serve |
@@ -534,12 +534,12 @@ números agregados, nunca uma linha individual:
 | Médias por construto e condição | Tabela construto × condição | Acompanhar a verificação da manipulação: espera-se HUM maior em C2 e C4 e PER maior em C3 e C4 |
 | Bloco IV — Perfil | Distribuição de cada pergunta de perfil, em % | Conferir a composição da amostra |
 
-**Por quê:** as barras são feitas só com CSS (a largura é proporcional ao valor), sem
+**Por que fiz assim:** fiz as barras só com CSS (a largura é proporcional ao valor), sem
 biblioteca de gráficos e sem nada carregado de sites externos. A tabela por condição é
-uma checagem rápida durante a coleta, e não substitui o teste estatístico, que é feito
-no SPSS.
+uma checagem rápida durante a coleta, e não substitui o teste estatístico, que faço no
+SPSS.
 
-O acesso usa uma senha única, definida no `.env` (`ADMIN_PASSWORD`). Veja a seção
+Protegi o acesso com uma senha única, definida no `.env` (`ADMIN_PASSWORD`). Veja a seção
 [7](#7-segurança).
 
 ---
@@ -549,7 +549,7 @@ O acesso usa uma senha única, definida no `.env` (`ADMIN_PASSWORD`). Veja a se�
 **Rota:** `/admin/exportar/respostas.csv` (exige o login do painel; há um link
 **Exportar CSV** no menu) · **Código:** `export_csv()` e `export_columns_dictionary()` em [`app.py`](app.py)
 
-O CSV tem **uma linha por participante que concluiu** e 53 colunas:
+Gero o CSV com **uma linha por participante que concluiu** e 53 colunas:
 
 | Coluna | Conteúdo |
 |---|---|
@@ -565,25 +565,25 @@ O CSV tem **uma linha por participante que concluiu** e 53 colunas:
 | `HUM1` ... `FREQUENCIA` | As 40 respostas (1 a 5 nos itens Likert; o texto da opção no perfil; vazio = não respondeu) |
 
 O **[codebook](dados/codebook.csv)** descreve cada coluna: nome, descrição, tipo e
-valores possíveis. Ele é **gerado pelo próprio sistema**, a partir do mesmo código que
-gera o CSV, e por isso nunca fica diferente do arquivo exportado:
+valores possíveis. Eu o **gero pelo próprio sistema**, a partir do mesmo código que
+gera o CSV; por isso ele nunca fica diferente do arquivo exportado:
 
 ```bash
 flask --app app codebook > dados/codebook.csv
 ```
 
-**Por quê:**
-- *Número sequencial, e não o token:* o token é o link de retomada do participante. Se
+**Por que fiz assim:**
+- *Uso um número sequencial, e não o token:* o token é o link de retomada do participante. Se
   ele aparecesse no CSV, qualquer pessoa com a planilha poderia abrir a pesquisa no
   lugar do participante.
-- *`hum` e `per` em 0/1:* a ANOVA 2x2 usa os dois fatores diretamente, sem recodificar.
-- *Os horários e as durações* permitem descartar respostas rápidas demais (por exemplo,
+- *Exporto `hum` e `per` em 0/1:* a ANOVA 2x2 usa os dois fatores diretamente, sem recodificar.
+- *Incluí os horários e as durações* para poder descartar respostas rápidas demais (por exemplo,
   `seg_questionario` muito baixo para 40 itens) e conferir se houve tempo real de
   interação com o chatbot.
-- *Exige login:* antes a exportação usava um token na própria URL, que ficava no
-  histórico do navegador e nos logs do servidor. Agora segue a mesma regra das outras
-  páginas do pesquisador.
-- *O arquivo começa com BOM UTF-8:* o Excel abre os acentos corretamente; SPSS e R
+- *Exijo login:* antes, a exportação usava um token na própria URL, que ficava no
+  histórico do navegador e nos logs do servidor. Agora ela segue a mesma regra das
+  outras páginas do painel.
+- *Começo o arquivo com o BOM UTF-8:* o Excel abre os acentos corretamente; SPSS e R
   ignoram o BOM.
 
 **Abrindo os dados:**
@@ -603,8 +603,8 @@ flask --app app codebook > dados/codebook.csv
 
 ## 5. Banco de dados
 
-O banco é um único arquivo SQLite (`instance/formsurvey.db`). A estrutura completa,
-com comentários, está em [`schema.sql`](schema.sql).
+Guardo tudo em um único arquivo SQLite (`instance/formsurvey.db`). A estrutura
+completa, com comentários, está em [`schema.sql`](schema.sql).
 
 ### 5.1 Diagrama
 
@@ -650,7 +650,7 @@ erDiagram
     }
 ```
 
-Repare que há **dois grupos de tabelas que não se ligam**:
+Organizei o banco em **dois grupos de tabelas que não se ligam**:
 
 | Grupo | Tabelas | Guarda |
 |---|---|---|
@@ -725,23 +725,22 @@ responses      (57, "HUM1", "2")   (57, "PER1", "5")   (57, "VINCULO", "Estudant
 ```
 
 Nada em `participants` ou `responses` aponta para a linha da Maria nem para o código.
-O sistema sabe que **alguém** autorizado pela Maria assentiu em 21/10 e que o
-participante 57 é um menor, mas **não tem nenhuma coluna** que diga que o 57 é o
-filho da Maria.
+Eu sei que **alguém** autorizado pela Maria assentiu em 21/10 e que o participante 57
+é um menor, mas **não tenho nenhuma coluna** que diga que o 57 é o filho da Maria.
 
 ### 5.4 Mudanças de estrutura
 
-As tabelas são criadas com `CREATE TABLE IF NOT EXISTS`. Rodar `flask --app app
+Crio as tabelas com `CREATE TABLE IF NOT EXISTS`. Rodar `flask --app app
 init-db` de novo **não apaga nada**, mas também não altera tabelas que já existem.
-Se a estrutura mudar entre versões (como da 0.1 para a 0.9), o banco precisa ser
-recriado. Isso só pode ser feito **antes do início da coleta**; veja o
+Se a estrutura mudar entre versões (como da 0.1 para a 0.9), preciso recriar o banco,
+o que só pode ser feito **antes do início da coleta**; veja o
 [CHANGELOG](CHANGELOG.md) e o [INSTALL.md](INSTALL.md).
 
 ---
 
 ## 6. Privacidade, ética e LGPD
 
-### 6.1 O que é coletado de cada pessoa
+### 6.1 O que coleto de cada pessoa
 
 | Pessoa | Dados de identificação | Dados da pesquisa |
 |---|---|---|
@@ -750,23 +749,24 @@ recriado. Isso só pode ser feito **antes do início da coleta**; veja o
 | Menor | **Nenhum** (só a decisão e a data, no código) | Condição, horários, respostas |
 | Quem recusa | **Nenhum** (só a recusa e a data) | Nenhum |
 
-Não são coletados: nome do participante, nome do menor, e-mail, CPF, matrícula,
-telefone, endereço IP (o sistema não grava IP no banco) nem localização.
+Não coleto: nome do participante, nome do menor, e-mail, CPF, matrícula, telefone,
+endereço IP (não gravo IP no banco) nem localização.
 
 ### 6.2 Como as respostas ficam separadas da identidade
 
 1. **Nenhuma chave liga os dois grupos de tabelas** (seção [5.1](#51-diagrama)). Na
    versão 0.1 havia uma coluna `participants.ref_id` que apontava para o registro de
-   consentimento, e bastava um JOIN para ligar as respostas ao nome. Ela foi removida.
-2. **Os registros de consentimento guardam só a data, sem hora.** Se eles tivessem a
+   consentimento, e bastava um JOIN para ligar as respostas ao nome. Eu a removi.
+2. **Nos registros de consentimento, guardo só a data, sem hora.** Se eles tivessem a
    hora exata, daria para casá-los com `participants.created_at`, que é criado no
    mesmo segundo. Com só a data, cada registro se mistura com todos os outros do mesmo
    dia.
-3. **O assentimento do menor fica na linha do código**, criada no dia da autorização
+3. **Registro o assentimento do menor na própria linha do código**, criada no dia da autorização
    do responsável, e não em uma tabela própria preenchida junto com o participante.
    Assim a ordem de inserção das linhas também não liga uma coisa à outra.
-4. **O CSV não tem token, nome nem código**, só o número sequencial do participante.
-5. **Há um teste automático** (`test_research_data_is_not_linked_to_consent_records`)
+4. **Não coloco no CSV o token, o nome nem o código**, só o número sequencial do
+   participante.
+5. **Mantenho um teste automático** (`test_research_data_is_not_linked_to_consent_records`)
    que falha se alguém voltar a criar uma ligação entre as tabelas ou a gravar hora
    nos registros de consentimento.
 
@@ -778,9 +778,9 @@ a ela, mas os registros de consentimento existem no mesmo servidor. Em um caso
 extremo, por exemplo, um único menor participando em um dia em que um único
 responsável autorizou, alguém com acesso ao **banco inteiro** poderia inferir a
 ligação pelas datas. Esse risco residual é baixo e fica restrito a quem tem acesso
-administrativo ao servidor, que é só o pesquisador.
+administrativo ao servidor, que sou só eu.
 
-**Sugestão de redação para a dissertação (seção 3.4.1):** "os dados pessoais
+**Redação que vou usar na dissertação (seção 3.4.1):** "os dados pessoais
 necessários ao registro do consentimento são armazenados em tabelas específicas, sem
 qualquer chave que os relacione às respostas, que são vinculadas exclusivamente a um
 identificador aleatório (UUID v4). Os registros de consentimento guardam apenas a data
@@ -791,16 +791,16 @@ pseudonimização dos dados (LGPD, art. 13, § 4º)."
 
 O Ofício Circular nº 2/2021/CONEP recomenda que, **ao fim da coleta**, os dados sejam
 baixados para um dispositivo local e **apagados do ambiente virtual**. O procedimento
-previsto é:
+que vou seguir é:
 
-1. exportar o CSV pelo painel;
-2. copiar o arquivo do banco (`instance/formsurvey.db`) para um dispositivo do
-   pesquisador, sem acesso à internet;
-3. apagar o banco e os backups do servidor (`instance/` e `/var/backups/formsurvey/`).
+1. exporto o CSV pelo painel;
+2. copio o arquivo do banco (`instance/formsurvey.db`) para um dispositivo meu, sem
+   acesso à internet;
+3. apago o banco e os backups do servidor (`instance/` e `/var/backups/formsurvey/`).
 
-O pedido de exclusão de um participante (previsto nos termos) é atendido pelo
-pesquisador. Como as respostas não têm identificação, a exclusão só é possível se o
-participante informar o próprio link de retomada (token).
+Eu atendo o pedido de exclusão de um participante (previsto nos termos). Como as
+respostas não têm identificação, só consigo excluí-las se o participante informar o
+próprio link de retomada (token).
 
 ---
 
@@ -824,13 +824,13 @@ participante informar o próprio link de retomada (token).
 | Modo de desenvolvimento só em `127.0.0.1` | `app.py` | Console de depuração exposto na rede |
 | Sem CDN, fontes ou scripts externos | `templates/base.html` | Rastreamento do participante por terceiros |
 
-**HTTPS:** com dados de menores, o acesso pela internet **precisa** ser por HTTPS. A
+**HTTPS:** com dados de menores, só vou liberar o acesso pela internet com HTTPS. A
 configuração com Nginx e Certbot está no [INSTALL.md](INSTALL.md), seção 7. Enquanto o
 sistema estiver só na rede interna, ele funciona em HTTP.
 
-**Formulários de consentimento sem login, de propósito:** qualquer pessoa pode abrir
-`/adulto` ou `/responsavel`, assim como qualquer pessoa pode pegar um termo em papel.
-O controle está no código de uso único do menor e na separação entre identificação e
+**Deixei os formulários de consentimento sem login, de propósito:** qualquer pessoa
+pode abrir `/adulto` ou `/responsavel`, assim como qualquer pessoa pode pegar um termo
+em papel. Coloquei o controle no código de uso único do menor e na separação entre identificação e
 respostas, e não em contas de usuário, que exigiriam coletar dados pessoais.
 
 ### Proteções do código de acesso do menor
@@ -859,9 +859,9 @@ stateDiagram-v2
 | Terceiros verem o código depois | A página e o PDF com o código só abrem na sessão do navegador do responsável que autorizou | `guardian_code_page()`, `guardian_pdf()` |
 | O código ligar o menor às respostas | Nenhuma coluna liga `access_codes` a `participants`; a autorização guarda só a data | `schema.sql`, seção [6.2](#62-como-as-respostas-ficam-separadas-da-identidade) |
 
-**Limites (o que o sistema não garante):**
+**Limites (o que não consigo garantir):**
 
-- **Quem usa o código não é verificado.** Qualquer pessoa com o link ou o código pode
+- **Não verifico quem usa o código.** Qualquer pessoa com o link ou o código pode
   abrir o TALE e decidir, inclusive o próprio responsável no lugar do menor. Verificar
   a identidade exigiria coletar dados pessoais do menor, o que o TCLE não permite. É a
   mesma limitação de um termo em papel entregue a alguém. O TALE se dirige ao menor e
@@ -870,7 +870,7 @@ stateDiagram-v2
 - **Código não usado não expira por tempo.** Ele continua válido até o menor decidir.
   O painel mostra quantos códigos estão pendentes.
 - **Até ser usado, o código é um acesso válido.** Quem tiver o PDF do responsável, ou o
-  link, pode usá-lo. Por isso o PDF avisa para não compartilhá-lo com outras pessoas.
+  link, pode usá-lo. Por isso aviso no PDF para não compartilhá-lo com outras pessoas.
 - **O link fica no histórico do navegador** de quem o abriu. Depois do uso, isso não
   tem mais importância, porque o código já expirou.
 
@@ -907,7 +907,7 @@ Python) · Jinja2 (páginas) · fpdf2 (PDF) · Gunicorn (servidor de produção)
 (serviço) · Nginx + Certbot (HTTPS, opcional). São só **três dependências** externas
 (`requirements.txt`, com versões fixadas para que a instalação seja reproduzível).
 
-**Por que essa pilha:** um sistema de pesquisa precisa ser auditável, barato e fácil
+**Por que escolhi essa pilha:** um sistema de pesquisa precisa ser auditável, barato e fácil
 de manter por uma pessoa só. O SQLite é um único arquivo, simples de copiar, auditar e
 apagar ao fim da coleta, e aguenta com folga o volume de uma pesquisa de algumas
 centenas de participantes. O Flask permite um sistema inteiro em um arquivo legível. Não
@@ -991,7 +991,7 @@ e acesse <http://127.0.0.1:5000>. O banco é criado sozinho em `instance/`.
 python -m unittest tests.test_flow -v
 ```
 
-São 20 testes de ponta a ponta. Eles usam um banco temporário e conferem, entre
+Mantenho 20 testes de ponta a ponta. Eles usam um banco temporário e conferem, entre
 outras coisas:
 
 - os três caminhos completos (adulto, responsável → menor) e as recusas;
@@ -1015,7 +1015,7 @@ serviço systemd, backup diário, HTTPS e atualização por `git pull`.
 
 ## 10. Como adaptar para outra pesquisa
 
-O FormSurvey foi escrito para ser reaproveitado. Para outro experimento:
+Escrevi o FormSurvey para ser reaproveitado. Para outro experimento:
 
 | Quero mudar... | Onde | Observação |
 |---|---|---|
@@ -1035,27 +1035,27 @@ em `templates/index.html`. Se não tiver condições experimentais, deixe uma s�
 
 ## 11. Uso de inteligência artificial
 
-O desenvolvimento do FormSurvey contou com o apoio de um assistente de programação
+No desenvolvimento do FormSurvey, contei com o apoio de um assistente de programação
 baseado em inteligência artificial generativa (**Claude, da Anthropic**, por meio do
 Claude Code).
 
-**Como a IA foi usada:**
+**Como usei a IA:**
 - correções de segurança;
 - escrita dos testes automatizados;
 - apoio na configuração e na implantação do servidor.
 
-**Responsabilidade do autor:**
+**O que é de minha responsabilidade:**
 - definição dos requisitos, do delineamento experimental e do instrumento de coleta;
 - todas as decisões éticas e metodológicas, incluindo a aderência aos termos
   aprovados pelo CEP;
 - revisão, aprovação e publicação de cada alteração;
 - validação do sistema em funcionamento.
 
-A IA foi uma ferramenta de apoio. **A autoria, as decisões e a responsabilidade pelo
-sistema e pelos dados da pesquisa são do autor.** A IA não teve acesso aos dados de
-participantes: o desenvolvimento ocorreu antes do início da coleta, com o banco de
-dados vazio.
+Usei a IA como ferramenta de apoio. **A autoria, as decisões e a responsabilidade pelo
+sistema e pelos dados da pesquisa são minhas.** A IA não teve acesso a dados de
+participantes: desenvolvi o sistema antes do início da coleta, com o banco de dados
+vazio.
 
 O chatbot avaliado na pesquisa também é um sistema de IA, mas é o **objeto de
-estudo**, e não uma ferramenta de desenvolvimento. Ele é um sistema separado, e o
-seu uso está informado aos participantes nos termos de consentimento.
+estudo**, e não uma ferramenta de desenvolvimento. Ele é um sistema separado, e
+informo o seu uso aos participantes nos termos de consentimento.
