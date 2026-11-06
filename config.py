@@ -95,5 +95,10 @@ CONDITIONS = {
 for _name, _cond in CONDITIONS.items():
     _cond["url"] = os.environ.get(f"CHATBOT_URL_{_name}", _DEFAULT_CHATBOT_URL)
 
+# Chave compartilhada com o chatbot (a mesma CHAT_SECRET do chat.env). Com ela,
+# o CSV traz a coluna "sessao_chatbot" = HMAC-SHA256(CHAT_SECRET, token)[:32],
+# o mesmo identificador que o chatbot grava, sem expor o token. Vazia: coluna vazia.
+CHAT_SECRET = os.environ.get("CHAT_SECRET", "")
+
 # Nomes dos fatores, na ordem em que viram colunas no CSV ("hum", "per").
 FACTORS = [key for key in next(iter(CONDITIONS.values())) if key != "url"]

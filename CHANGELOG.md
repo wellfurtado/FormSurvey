@@ -3,6 +3,13 @@
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e as
 versões seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Adicionado
+- Coluna `sessao_chatbot` no CSV: `HMAC-SHA256(CHAT_SECRET, token)[:32]`, o mesmo
+  identificador que o chatbot grava. Liga as respostas do questionário aos indicadores
+  de uso do chatbot sem expor o token. Exige a mesma `CHAT_SECRET` do chatbot no `.env`.
+
 ## [0.9.1] — 2026-10-06
 
 ### Adicionado

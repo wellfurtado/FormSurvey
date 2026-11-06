@@ -400,6 +400,7 @@ depois que o chatbot foi aberto.
 | Item | Valor |
 |---|---|
 | Endereço de cada condição | `CHATBOT_URL_C1` ... `CHATBOT_URL_C4` no `.env` |
+| Ligação com os registros do chatbot | `CHAT_SECRET` no `.env`, igual à do chatbot; o CSV traz `sessao_chatbot` = HMAC do token |
 | O que o FormSurvey envia | `?token=<UUID do participante>` no fim do endereço (ou `&token=` se o endereço já tiver `?`) |
 | Para que serve o token | Se o chatbot gravar as conversas, pode associá-las ao participante anônimo e, portanto, à condição, sem nenhum dado pessoal |
 | Como o participante volta | Pela aba do FormSurvey, que continua aberta. O chatbot não precisa saber o endereço de volta |
@@ -416,7 +417,7 @@ depois que o chatbot foi aberto.
 - *Limitação conhecida:* eu registro que o chatbot foi **aberto**, não
   quanto a pessoa **conversou**. O tempo entre abrir o chatbot e abrir o questionário
   (`seg_chatbot` no CSV) é uma aproximação. A medida exata, se necessária, vem dos
-  registros do próprio chatbot, cruzados pelo token.
+  indicadores do próprio chatbot, cruzados pela coluna `sessao_chatbot`.
 
 ### 2.7 Questionário
 
@@ -549,7 +550,7 @@ Protegi o acesso com uma senha única, definida no `.env` (`ADMIN_PASSWORD`). Ve
 **Rota:** `/admin/exportar/respostas.csv` (exige o login do painel; há um link
 **Exportar CSV** no menu) · **Código:** `export_csv()` e `export_columns_dictionary()` em [`app.py`](app.py)
 
-Gero o CSV com **uma linha por participante que concluiu** e 53 colunas:
+Gero o CSV com **uma linha por participante que concluiu** e 54 colunas:
 
 | Coluna | Conteúdo |
 |---|---|
@@ -557,6 +558,7 @@ Gero o CSV com **uma linha por participante que concluiu** e 53 colunas:
 | `perfil` | `adulto` (RCLE) ou `menor` (TCLE + TALE) |
 | `condicao` | `C1`, `C2`, `C3` ou `C4` |
 | `hum`, `per` | Os fatores da condição, em 0/1, prontos para a ANOVA 2x2 |
+| `sessao_chatbot` | `HMAC-SHA256(CHAT_SECRET, token)[:32]`, o mesmo identificador que o chatbot grava; liga a linha aos indicadores de uso do chatbot sem expor o token (vazio sem `CHAT_SECRET`) |
 | `inicio`, `chatbot_aberto`, `questionario_aberto`, `concluido` | Horários de cada etapa (UTC, ISO 8601) |
 | `seg_chatbot` | Segundos entre abrir o chatbot e abrir o questionário (tempo aproximado de interação) |
 | `seg_questionario` | Segundos entre abrir e enviar o questionário |

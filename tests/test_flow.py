@@ -347,6 +347,19 @@ class FlowTest(unittest.TestCase):
         self.assertEqual((row["hum"], row["per"]), (str(cond["hum"]), str(cond["per"])))
         self.assertEqual(row["PU1"], "4")
         self.assertEqual(row["itens_em_branco"], str(len(header) - header.index("HUM1") - 1))
+        self.assertEqual(row["sessao_chatbot"], "")  # sem CHAT_SECRET, coluna vazia
+
+        # Com a chave, a coluna é o mesmo HMAC que o chatbot calcula.
+        import hashlib, hmac
+        config.CHAT_SECRET = "chave-de-teste"
+        try:
+            text = self.admin_client().get("/admin/exportar/respostas.csv").data.decode("utf-8-sig")
+        finally:
+            config.CHAT_SECRET = ""
+        lines = text.strip().splitlines()
+        row = dict(zip(header, next(l for l in lines[1:] if l.split(",")[0] == str(p["id"])).split(",")))
+        self.assertEqual(row["sessao_chatbot"],
+                         hmac.new(b"chave-de-teste", token.encode(), hashlib.sha256).hexdigest()[:32])
 
         # O token (link de retomada) e nomes nunca aparecem no CSV.
         self.assertNotIn(token, text)

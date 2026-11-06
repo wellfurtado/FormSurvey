@@ -22,6 +22,8 @@ E, para o pesquisador:
 O README.md tem os diagramas de cada fluxo e explica o porquê de cada decisão.
 """
 import csv
+import hashlib
+import hmac
 import io
 import os
 import random
@@ -647,6 +649,13 @@ def _seconds_between(start, end):
     return round((datetime.fromisoformat(end) - datetime.fromisoformat(start)).total_seconds())
 
 
+def _chatbot_session(token):
+    """O mesmo identificador de sessão que o chatbot calcula (chat/app.py)."""
+    if not config.CHAT_SECRET:
+        return ""
+    return hmac.new(config.CHAT_SECRET.encode(), token.encode(), hashlib.sha256).hexdigest()[:32]
+
+
 def export_columns_dictionary():
     """Descrição de cada coluna do CSV, na mesma ordem do CSV.
 
@@ -667,6 +676,7 @@ def export_columns_dictionary():
     for factor in config.FACTORS:
         columns.append((factor, f"Fator {factor_labels.get(factor, factor)} da condição", "0/1", "0 = baixa; 1 = alta"))
     columns += [
+        ("sessao_chatbot", "Identificador da sessão no chatbot, HMAC-SHA256(CHAT_SECRET, token)[:32]; liga esta linha aos indicadores de uso do chatbot", "texto", "vazio = CHAT_SECRET não configurada"),
         ("inicio", "Aceite do termo (UTC, ISO 8601)", "data-hora", ""),
         ("chatbot_aberto", "Primeira abertura do chatbot (UTC)", "data-hora", ""),
         ("questionario_aberto", "Primeira abertura do questionário (UTC)", "data-hora", ""),
@@ -715,6 +725,7 @@ def export_csv():
             kind_label[p["kind"]],
             p["condition"],
             *[condition.get(f, "") for f in config.FACTORS],
+            _chatbot_session(p["token"]),
             p["created_at"],
             p["chatbot_opened_at"] or "",
             p["questionnaire_started_at"] or "",
