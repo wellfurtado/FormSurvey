@@ -2,7 +2,8 @@
 {% block content %}
 {# Questionário montado a partir de questions.py: os Blocos I-III em escala
    Likert (botões redondos de 1 a 5) e o Bloco IV (perfil) em listas de
-   seleção. Nenhum campo tem "required": responder é sempre opcional. O
+   seleção. Nenhum campo tem "required": responder é sempre opcional; o
+   app.js só avisa, antes de enviar, quantos itens ficaram em branco. O
    "name" de cada campo é o código do item (HUM1, PER2...), que é a chave
    gravada no banco e o nome da coluna no CSV. #}
 <div class="card fade-in">
@@ -10,7 +11,7 @@
   <p>Você não precisa responder nenhuma pergunta que não quiser.</p>
 </div>
 
-<form method="post">
+<form method="post" data-warn-blank>
   {% for block_name, items in blocks %}
   <section class="questionnaire-block fade-in">
     <h2>{{ block_name }}</h2>

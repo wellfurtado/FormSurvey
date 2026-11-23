@@ -3,12 +3,18 @@
 {# Etapa do chatbot. O botão "Abrir" passa por /pesquisa/<token>/chatbot/abrir,
    que registra o horário e redireciona para o chatbot da condição sorteada.
    O endereço do chatbot nunca aparece nesta página. O botão do questionário
-   só aparece depois que o chatbot foi aberto pelo menos uma vez. #}
+   só aparece depois que o chatbot foi aberto pelo menos uma vez; com a
+   interação mínima ligada (min_questions > 0), o servidor ainda confere se o
+   participante fez as perguntas antes de abrir o questionário. #}
 <div class="card fade-in">
   <h1>💬 Converse com o chatbot</h1>
   <p>Abra o chatbot e converse com ele por 5 a 10 minutos, perguntando o que você quiser saber sobre o
   IFAP Campus Santana: cursos, editais, auxílios e bolsas, processos seletivos, estrutura do campus e
   outros assuntos. Depois, volte para esta página e continue para o questionário.</p>
+  {% if min_questions %}
+  <p><strong>Faça pelo menos {{ min_questions }} perguntas ao chatbot</strong> antes de continuar.
+  {% if question_count is not none %}Até agora: {{ question_count }} de {{ min_questions }}.{% endif %}</p>
+  {% endif %}
 
   <a class="btn" href="{{ url_for('open_chatbot', token=token) }}" target="_blank" rel="noopener"
      data-reveal="#to-questionnaire">Abrir o chatbot ↗</a>
@@ -18,6 +24,7 @@
   <div id="to-questionnaire" {{ 'hidden' if not chatbot_opened }}>
     <a class="btn btn-secondary" href="{{ url_for('questionnaire', token=token) }}">Já conversei, continuar para o questionário →</a>
   </div>
+  <p class="muted"><a href="{{ url_for('declined') }}">Não quero continuar na pesquisa</a></p>
 </div>
 
 <div class="card fade-in">

@@ -100,5 +100,15 @@ for _name, _cond in CONDITIONS.items():
 # o mesmo identificador que o chatbot grava, sem expor o token. Vazia: coluna vazia.
 CHAT_SECRET = os.environ.get("CHAT_SECRET", "")
 
+# Interação mínima antes do questionário. O FormSurvey pergunta ao chatbot,
+# pela rede interna (o chatbot só responde a 127.0.0.1), quantas perguntas a
+# sessão do participante já fez: GET <CHATBOT_CONTAGEM_URL>/<sessao_chatbot>.
+# Vazia: sem bloqueio (desenvolvimento e testes). Se o chatbot não responder,
+# libero o questionário depois de LIBERAR_APOS_MIN minutos da abertura, para
+# ninguém ficar preso por uma falha técnica.
+CHATBOT_CONTAGEM_URL = os.environ.get("CHATBOT_CONTAGEM_URL", "").rstrip("/")
+MIN_PERGUNTAS = int(os.environ.get("MIN_PERGUNTAS", "2"))
+LIBERAR_APOS_MIN = int(os.environ.get("LIBERAR_APOS_MIN", "10"))
+
 # Nomes dos fatores, na ordem em que viram colunas no CSV ("hum", "per").
 FACTORS = [key for key in next(iter(CONDITIONS.values())) if key != "url"]

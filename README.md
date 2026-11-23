@@ -384,16 +384,23 @@ sequenceDiagram
     P->>S: clica em "Abrir o chatbot" (nova aba)
     S->>DB: chatbot_opened_at = agora (só na 1ª vez)
     S-->>P: redireciona para CHATBOT_URL_Cx?token={token}
-    P->>C: conversa por 5 a 10 minutos
+    P->>C: conversa por 5 a 10 minutos (pelo menos 2 perguntas)
     P->>S: volta à aba da pesquisa e clica em "Já conversei"
-    S->>DB: questionnaire_started_at = agora (só na 1ª vez)
+    S->>C: GET 127.0.0.1:8080/chatbot/api/contagem/{sessao_chatbot}
+    C-->>S: número de perguntas
+    alt menos de MIN_PERGUNTAS
+        S-->>P: volta à página do chatbot ("até agora: 1 de 2")
+    end
+    S->>DB: chat_messages = contagem; questionnaire_started_at = agora (só na 1ª vez)
     S-->>P: questionário
 ```
 
 **O que a pessoa vê:** instruções (*"faça uma breve simulação de atendimento, de 5 a 10
 minutos"*), o botão **Abrir o chatbot**, que abre em nova aba, e o **link de retomada**
 com botão *Copiar*. O botão *Já conversei, continuar para o questionário* só aparece
-depois que o chatbot foi aberto.
+depois que o chatbot foi aberto. Com a interação mínima ligada, a página pede *"faça
+pelo menos 2 perguntas"* e mostra quantas já foram feitas. Há também o link *Não quero
+continuar na pesquisa*.
 
 **O contrato de integração com o chatbot** (vale para qualquer chatbot ou estímulo):
 
@@ -404,6 +411,7 @@ depois que o chatbot foi aberto.
 | O que o FormSurvey envia | `?token=<UUID do participante>` no fim do endereço (ou `&token=` se o endereço já tiver `?`) |
 | Para que serve o token | Se o chatbot gravar as conversas, pode associá-las ao participante anônimo e, portanto, à condição, sem nenhum dado pessoal |
 | Como o participante volta | Pela aba do FormSurvey, que continua aberta. O chatbot não precisa saber o endereço de volta |
+| Interação mínima (opcional) | `CHATBOT_CONTAGEM_URL` (ex.: `http://127.0.0.1:8080/chatbot/api/contagem`), `MIN_PERGUNTAS` (2) e `LIBERAR_APOS_MIN` (10) no `.env`. O chatbot responde `GET <url>/<sessao_chatbot>` com o número de perguntas, só para a própria máquina |
 
 **Por que fiz assim:**
 - *Faço o botão passar por `/abrir`*, e não ligar direto ao chatbot, para (1) registrar o
@@ -414,17 +422,22 @@ depois que o chatbot foi aberto.
   servidor; esconder o botão é só conforto visual.
 - *Registro só a primeira abertura:* se a pessoa clicar de novo, o horário inicial
   não muda.
-- *Limitação conhecida:* eu registro que o chatbot foi **aberto**, não
-  quanto a pessoa **conversou**. O tempo entre abrir o chatbot e abrir o questionário
-  (`seg_chatbot` no CSV) é uma aproximação. A medida exata, se necessária, vem dos
-  indicadores do próprio chatbot, cruzados pela coluna `sessao_chatbot`.
+- *Exijo uma interação mínima (2 perguntas):* abrir o chatbot não garante exposição
+  ao estímulo. O FormSurvey pergunta ao chatbot, pela própria máquina, quantas
+  perguntas a sessão fez, e guarda o número (`mensagens_chatbot` no CSV). Se o chatbot
+  não responder à contagem, libero o questionário `LIBERAR_APOS_MIN` minutos depois da
+  abertura, para ninguém ficar preso por falha técnica; a pessoa pode desistir a
+  qualquer momento.
+- *Os demais indicadores* (tempos e tamanho das respostas) vêm do próprio chatbot,
+  cruzados pela coluna `sessao_chatbot`. O tempo entre abrir o chatbot e abrir o
+  questionário (`seg_chatbot`) continua como aproximação da duração da conversa.
 
 ### 2.7 Questionário
 
 **Rota:** `/pesquisa/<token>/questionario` · **Definição dos itens:** [`questions.py`](questions.py) ·
 **Template:** `questionnaire.html`
 
-O instrumento é o Anexo I da minha dissertação, com quatro blocos e 40 itens:
+O instrumento é o Anexo I da minha dissertação, com quatro blocos e 41 itens (40 de conteúdo e 1 de verificação de atenção):
 
 | Bloco | Construto | Código | Itens | Formato |
 |---|---|---|---|---|
@@ -436,6 +449,7 @@ O instrumento é o Anexo I da minha dissertação, com quatro blocos e 40 itens:
 | | Facilidade de Uso Percebida | `PEOU1`–`PEOU4` | 4 | Likert 1–5 |
 | | Intenção de Uso | `IU1`–`IU4` | 4 | Likert 1–5 |
 | | Engajamento de Serviços Digitais | `CSD1`–`CSD4` | 4 | Likert 1–5 |
+| | Verificação de atenção (no meio do bloco, depois de `PU4`; resposta correta: 4) | `AC1` | 1 | Likert 1–5 |
 | III — Controle | Variáveis de Controle | `VC1`–`VC3` | 3 | Likert 1–5 |
 | IV — Perfil | Vínculo, faixa etária, gênero, escolaridade, frequência de uso | `VINCULO`, `FAIXA_ETARIA`, `GENERO`, `ESCOLARIDADE`, `FREQUENCIA` | 5 | Múltipla escolha |
 
@@ -451,7 +465,14 @@ valor), o horário em que o questionário foi aberto pela primeira vez
 - *Não torno nenhum item obrigatório.* Os termos garantem o "direito de não responder a
   qualquer questão sem necessidade de justificativa". Item em branco não gera linha, e
   o CSV informa quantos ficaram em branco (`itens_em_branco`), para servir de filtro
-  na análise.
+  na análise. Para reduzir os brancos sem tirar esse direito, ao enviar com itens sem
+  resposta o navegador avisa quantos são e deixa a pessoa revisar ou enviar assim mesmo.
+- *Os itens PER perguntam por sinais objetivos da interface* (nome, logotipo, cores,
+  siglas e documentos do IFAP), e não por avaliações de identidade, para não se
+  sobreporem aos itens de IDI (validade discriminante, HTMT).
+- *Incluí uma verificação de atenção (`AC1`)* no meio do Bloco II. Ela não entra em
+  nenhum construto nem na média do painel; o CSV traz `atencao_ok` para o filtro
+  definido antes da coleta. Errar não impede a participação.
 - *No servidor, só aceito valores que existem no instrumento* (1 a 5 nos itens Likert,
   as opções listadas no perfil). Descarto qualquer outro valor, enviado por alguém que
   editou o formulário no navegador, como se o item estivesse em branco.
@@ -550,7 +571,7 @@ Protegi o acesso com uma senha única, definida no `.env` (`ADMIN_PASSWORD`). Ve
 **Rota:** `/admin/exportar/respostas.csv` (exige o login do painel; há um link
 **Exportar CSV** no menu) · **Código:** `export_csv()` e `export_columns_dictionary()` em [`app.py`](app.py)
 
-Gero o CSV com **uma linha por participante que concluiu** e 54 colunas:
+Gero o CSV com **uma linha por participante que concluiu** e 57 colunas:
 
 | Coluna | Conteúdo |
 |---|---|
@@ -563,8 +584,10 @@ Gero o CSV com **uma linha por participante que concluiu** e 54 colunas:
 | `seg_chatbot` | Segundos entre abrir o chatbot e abrir o questionário (tempo aproximado de interação) |
 | `seg_questionario` | Segundos entre abrir e enviar o questionário |
 | `seg_total` | Segundos do aceite do termo ao envio |
-| `itens_em_branco` | Quantos dos 40 itens ficaram sem resposta |
-| `HUM1` ... `FREQUENCIA` | As 40 respostas (1 a 5 nos itens Likert; o texto da opção no perfil; vazio = não respondeu) |
+| `itens_em_branco` | Quantos dos 41 itens ficaram sem resposta |
+| `mensagens_chatbot` | Perguntas feitas ao chatbot, lidas do próprio chatbot (vazio = contagem indisponível) |
+| `atencao_ok` | 1 = acertou a verificação de atenção (`AC1` = 4); 0 = errou; vazio = em branco |
+| `HUM1` ... `FREQUENCIA` | As 41 respostas (1 a 5 nos itens Likert; o texto da opção no perfil; vazio = não respondeu) |
 
 O **[codebook](dados/codebook.csv)** descreve cada coluna: nome, descrição, tipo e
 valores possíveis. Eu o **gero pelo próprio sistema**, a partir do mesmo código que
@@ -580,7 +603,7 @@ flask --app app codebook > dados/codebook.csv
   lugar do participante.
 - *Exporto `hum` e `per` em 0/1:* a ANOVA 2x2 usa os dois fatores diretamente, sem recodificar.
 - *Incluí os horários e as durações* para poder descartar respostas rápidas demais (por exemplo,
-  `seg_questionario` muito baixo para 40 itens) e conferir se houve tempo real de
+  `seg_questionario` muito baixo para 41 itens) e conferir se houve tempo real de
   interação com o chatbot.
 - *Exijo login:* antes, a exportação usava um token na própria URL, que ficava no
   histórico do navegador e nos logs do servidor. Agora ela segue a mesma regra das

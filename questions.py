@@ -26,8 +26,11 @@ LIKERT_SCALE = [
 # Blocos I a III: (título do bloco, [(código, texto do item), ...]).
 #   Bloco I   - verificação da manipulação (manipulation check): confere se o
 #               participante percebeu o nível de humanização (HUM) e de
-#               personalização (PER) da condição a que foi exposto.
-#   Bloco II  - os construtos do modelo teórico (IDI, CON, PU, PEOU, IU, CSD).
+#               personalização (PER) da condição a que foi exposto. Os itens PER
+#               perguntam por sinais objetivos da interface (nome, logotipo,
+#               cores, siglas), para não se confundirem com os de IDI.
+#   Bloco II  - os construtos do modelo teórico (IDI, CON, PU, PEOU, IU, CSD),
+#               com um item de verificação de atenção (AC1) no meio.
 #   Bloco III - variáveis de controle (VC).
 LIKERT_BLOCKS = [
     (
@@ -39,8 +42,8 @@ LIKERT_BLOCKS = [
             ("HUM4", "A interação com o chatbot transmitiu uma sensação de contato social, semelhante a uma conversa com uma pessoa real."),
             ("PER1", "A interface do chatbot deixou claro que se trata de um serviço oficial do IFAP Campus Santana."),
             ("PER2", "O chatbot utilizou termos e expressões próprios do ambiente acadêmico da instituição."),
-            ("PER3", "A identidade visual e textual do chatbot reflete adequadamente a imagem do IFAP."),
-            ("PER4", "O chatbot transmite características que são tipicamente associadas ao IFAP, e não a qualquer outra instituição de ensino."),
+            ("PER3", "A tela do chatbot exibiu o logotipo e as cores do IFAP."),
+            ("PER4", "As respostas do chatbot citaram setores, siglas ou documentos próprios do IFAP Campus Santana."),
         ],
     ),
     (
@@ -48,7 +51,7 @@ LIKERT_BLOCKS = [
         [
             ("IDI1", "Sinto que o chatbot representa adequadamente os valores e a identidade do IFAP no ambiente digital."),
             ("IDI2", "Interagir com este chatbot é como interagir diretamente com a instituição."),
-            ("IDI3", "Os elementos visuais e linguagem do chatbot são reconhecíveis como sendo do IFAP."),
+            ("IDI3", "Sinto que este chatbot expressa a identidade da comunidade acadêmica da qual faço parte no IFAP."),
             ("IDI4", "Considero que este chatbot é uma extensão legítima do IFAP no ambiente digital."),
             ("CON1", "Confio que as informações fornecidas pelo chatbot são precisas e corretas."),
             ("CON2", "Acredito que o chatbot atua de forma segura e protege meus dados durante a interação."),
@@ -58,6 +61,9 @@ LIKERT_BLOCKS = [
             ("PU2", "Utilizar o chatbot tornaria mais rápida a busca por informações institucionais."),
             ("PU3", "O chatbot é útil para resolver minhas dúvidas acadêmicas ou administrativas."),
             ("PU4", "No geral, considero que o chatbot traz benefícios práticos para o meu dia a dia na instituição."),
+            # Verificação de atenção (attention check): não é item de construto.
+            # Quem leu marca 4; a regra de exclusão está definida na dissertação.
+            ("AC1", "Para confirmar que você está lendo com atenção, marque a opção \"Concordo Parcialmente\" nesta linha."),
             ("PEOU1", "Aprender a interagir com o chatbot é fácil para mim."),
             ("PEOU2", "Acho que a interface do chatbot é clara e compreensível."),
             ("PEOU3", "É fácil fazer com que o chatbot faça o que eu preciso."),
@@ -123,6 +129,9 @@ CONSTRUCT_LABELS = {
     "CSD": "Engajamento de Serviços Digitais",
     "VC": "Variáveis de Controle",
 }
+
+# Itens Likert que não pertencem a construto: o painel não calcula média deles.
+ATTENTION_CHECKS = {"AC1": 4}  # código -> valor correto (4 = Concordo Parcialmente)
 
 
 def is_likert_code(code):

@@ -29,6 +29,7 @@ import os
 import random
 import secrets
 import sys
+import urllib.request
 import uuid
 from datetime import date, datetime, timezone
 from functools import wraps
@@ -496,9 +497,12 @@ def chatbot_step(token):
     done = _redirect_if_completed(participant)
     if done:
         return done
+    count = _chat_question_count(token) if participant["chatbot_opened_at"] else None
     return render_template(
         "chatbot.html", token=token,
         chatbot_opened=bool(participant["chatbot_opened_at"]),
+        min_questions=config.MIN_PERGUNTAS if config.CHATBOT_CONTAGEM_URL else 0,
+        question_count=count,
         resume_link=url_for("chatbot_step", token=token, _external=True),
         step=2, steps=STEPS,
     )
@@ -556,6 +560,18 @@ def questionnaire(token):
     if not participant["chatbot_opened_at"]:
         flash("Antes do questionário, abra o chatbot e converse com ele por alguns minutos.")
         return redirect(url_for("chatbot_step", token=token))
+
+    # Interação mínima: o questionário só abre (na primeira vez) depois de
+    # MIN_PERGUNTAS perguntas ao chatbot. Guardo a contagem para o CSV.
+    count = _chat_question_count(token)
+    if count is not None:
+        db.execute("UPDATE participants SET chat_messages = ? WHERE token = ?", (count, token))
+    if config.CHATBOT_CONTAGEM_URL and not participant["questionnaire_started_at"]:
+        opened_min = _seconds_between(participant["chatbot_opened_at"], now_iso()) / 60
+        if (count or 0) < config.MIN_PERGUNTAS and not (count is None and opened_min >= config.LIBERAR_APOS_MIN):
+            flash(f"Para continuar, faça pelo menos {config.MIN_PERGUNTAS} perguntas ao chatbot "
+                  f"(até agora: {count or 0}).")
+            return redirect(url_for("chatbot_step", token=token))
 
     if request.method == "POST":
         for code in questions.all_question_codes():
@@ -656,6 +672,22 @@ def _chatbot_session(token):
     return hmac.new(config.CHAT_SECRET.encode(), token.encode(), hashlib.sha256).hexdigest()[:32]
 
 
+def _chat_question_count(token):
+    """Quantas perguntas a sessão do participante fez ao chatbot.
+
+    Pergunto ao próprio chatbot (GET <CHATBOT_CONTAGEM_URL>/<sessao_chatbot>),
+    que roda na mesma máquina. Devolvo None se a contagem estiver desligada
+    ou se o chatbot não responder.
+    """
+    if not config.CHATBOT_CONTAGEM_URL or not config.CHAT_SECRET:
+        return None
+    try:
+        with urllib.request.urlopen(f"{config.CHATBOT_CONTAGEM_URL}/{_chatbot_session(token)}", timeout=3) as r:
+            return int(r.read())
+    except (OSError, ValueError):
+        return None
+
+
 def export_columns_dictionary():
     """Descrição de cada coluna do CSV, na mesma ordem do CSV.
 
@@ -685,6 +717,8 @@ def export_columns_dictionary():
         ("seg_questionario", "Segundos entre abrir e enviar o questionário", "inteiro", ""),
         ("seg_total", "Segundos entre o aceite do termo e o envio do questionário", "inteiro", ""),
         ("itens_em_branco", f"Quantidade de itens não respondidos (de {len(questions.all_question_codes())})", "inteiro", ""),
+        ("mensagens_chatbot", "Perguntas feitas ao chatbot, lidas do chatbot na abertura e no envio do questionário", "inteiro", "vazio = contagem indisponível"),
+        ("atencao_ok", "Acertou a verificação de atenção (" + ", ".join(f"{c} = {v}" for c, v in questions.ATTENTION_CHECKS.items()) + ")", "0/1", "1 = acertou; 0 = errou; vazio = deixou em branco"),
     ]
     for code in questions.all_question_codes():
         if questions.is_likert_code(code):
@@ -695,6 +729,15 @@ def export_columns_dictionary():
             options = "; ".join(questions.profile_options(code))
             columns.append((code, questions.question_text(code), "categórica", options + "; vazio = prefiro não responder"))
     return columns
+
+
+def _attention_ok(answers):
+    """1 se acertou todas as verificações de atenção, 0 se errou alguma,
+    vazio se deixou alguma em branco."""
+    given = [answers.get(c) for c in questions.ATTENTION_CHECKS]
+    if None in given:
+        return ""
+    return int(all(int(answers[c]) == v for c, v in questions.ATTENTION_CHECKS.items()))
 
 
 @app.route("/admin/exportar/respostas.csv")
@@ -734,6 +777,8 @@ def export_csv():
             _seconds_between(p["questionnaire_started_at"], p["completed_at"]),
             _seconds_between(p["created_at"], p["completed_at"]),
             sum(1 for c in codes if c not in answers),
+            "" if p["chat_messages"] is None else p["chat_messages"],
+            _attention_ok(answers),
             *[answers.get(c, "") for c in codes],
         ])
 

@@ -96,7 +96,8 @@ CREATE TABLE IF NOT EXISTS participants (
     created_at               TEXT    NOT NULL,  -- concordou com o termo
     chatbot_opened_at        TEXT,              -- clicou em "Abrir o chatbot" (1ª vez)
     questionnaire_started_at TEXT,              -- abriu o questionário (1ª vez)
-    completed_at             TEXT               -- enviou o questionário
+    completed_at             TEXT,              -- enviou o questionário
+    chat_messages            INTEGER            -- perguntas feitas ao chatbot (lido do chatbot)
 );
 
 

@@ -44,6 +44,10 @@ def init_db():
     schema_path = os.path.join(os.path.dirname(__file__), "schema.sql")
     with open(schema_path, encoding="utf-8") as f:
         conn.executescript(f.read())
+    # Bancos criados antes da v0.11 não têm a coluna chat_messages.
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(participants)")}
+    if "chat_messages" not in cols:
+        conn.execute("ALTER TABLE participants ADD COLUMN chat_messages INTEGER")
     conn.commit()
 
 

@@ -365,6 +365,36 @@ class FlowTest(unittest.TestCase):
         self.assertNotIn(token, text)
         self.assertNotIn("Maria Silva", text)
 
+    def test_minimum_interaction_before_questionnaire(self):
+        """Com a contagem ligada, o questionário só abre depois de MIN_PERGUNTAS
+        perguntas; a contagem vai para o CSV junto com a verificação de atenção."""
+        client, token = self.new_adult()
+        client.get(f"/pesquisa/{token}/chatbot/abrir")
+        counts = iter([1, 1, 2, 2])
+        with mock.patch.object(config, "CHATBOT_CONTAGEM_URL", "http://127.0.0.1:9/api/contagem"),              mock.patch.object(app_module, "_chat_question_count", lambda t: next(counts)):
+            self.assertIn("1 de 2", client.get(f"/pesquisa/{token}/chatbot").get_data(as_text=True))
+            resp = client.get(f"/pesquisa/{token}/questionario")
+            self.assertIn(f"/pesquisa/{token}/chatbot", resp.location)  # só 1 pergunta: volta
+            self.assertEqual(client.get(f"/pesquisa/{token}/questionario").status_code, 200)
+            client.post(f"/pesquisa/{token}/questionario", data={"AC1": "2", "PU1": "5"})
+        p = self.query_one("SELECT * FROM participants WHERE token = ?", (token,))
+        self.assertEqual(p["chat_messages"], 2)
+
+        lines = self.admin_client().get("/admin/exportar/respostas.csv").data.decode("utf-8-sig").splitlines()
+        header = lines[0].split(",")
+        row = dict(zip(header, next(l for l in lines[1:] if l.split(",")[0] == str(p["id"])).split(",")))
+        self.assertEqual((row["mensagens_chatbot"], row["atencao_ok"], row["AC1"]), ("2", "0", "2"))
+
+    def test_minimum_interaction_released_if_chatbot_unreachable(self):
+        """Se o chatbot não responder à contagem, ninguém fica preso: o
+        questionário abre LIBERAR_APOS_MIN minutos depois da abertura."""
+        client, token = self.new_adult()
+        client.get(f"/pesquisa/{token}/chatbot/abrir")
+        with mock.patch.object(config, "CHATBOT_CONTAGEM_URL", "http://127.0.0.1:9/api/contagem"),              mock.patch.object(app_module, "_chat_question_count", lambda t: None):
+            self.assertEqual(client.get(f"/pesquisa/{token}/questionario").status_code, 302)
+            with mock.patch.object(config, "LIBERAR_APOS_MIN", 0):
+                self.assertEqual(client.get(f"/pesquisa/{token}/questionario").status_code, 200)
+
     def test_codebook_matches_csv_columns(self):
         out = subprocess.run(
             [sys.executable, "-m", "flask", "--app", "app", "codebook"],

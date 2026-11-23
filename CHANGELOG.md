@@ -3,6 +3,26 @@
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e as
 versões seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.11.0] — 2026-11-23
+
+Ajustes pedidos pelo coorientador antes da coleta (dependem da emenda ao CEP).
+
+### Alterado
+- Itens `PER3` e `PER4` reescritos como sinais objetivos da interface (logotipo e cores;
+  setores, siglas e documentos do IFAP), para não se sobreporem aos itens de IDI.
+- Item `IDI3` substituído por "Sinto que este chatbot expressa a identidade da comunidade
+  acadêmica da qual faço parte no IFAP."
+
+### Adicionado
+- Verificação de atenção `AC1` no meio do Bloco II (resposta correta: 4) e coluna
+  `atencao_ok` no CSV. Não entra em construto nem no painel.
+- Interação mínima: o questionário só abre depois de `MIN_PERGUNTAS` (2) perguntas ao
+  chatbot, lidas de `CHATBOT_CONTAGEM_URL`. Se a contagem falhar, libera após
+  `LIBERAR_APOS_MIN` minutos. Coluna `mensagens_chatbot` no CSV e `chat_messages` no banco
+  (criada automaticamente pelo `init-db` em bancos antigos).
+- Aviso, ao enviar, de quantos itens ficaram em branco (continua sendo possível enviar).
+- Link "Não quero continuar na pesquisa" na etapa do chatbot.
+
 ## [0.10.0] — 2026-11-12
 
 ### Adicionado
