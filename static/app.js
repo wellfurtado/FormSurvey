@@ -57,17 +57,3 @@ document.querySelectorAll("[data-reveal]").forEach((link) => {
     if (target) target.hidden = false;
   });
 });
-
-// 4) Aviso de itens em branco: responder continua opcional (direito garantido
-//    no termo), mas antes de enviar eu mostro quantos itens ficaram sem
-//    resposta e deixo a pessoa revisar ou enviar assim mesmo.
-document.querySelectorAll("form[data-warn-blank]").forEach((form) => {
-  form.addEventListener("submit", (event) => {
-    const names = new Set([...form.querySelectorAll("input[type=radio]")].map((r) => r.name));
-    const blank = [...names].filter((n) => !form.querySelector(`input[name="${n}"]:checked`)).length;
-    if (blank && !confirm(`Você deixou ${blank} ${blank === 1 ? "item" : "itens"} sem resposta. ` +
-        "Clique em Cancelar para revisar ou em OK para enviar assim mesmo.")) {
-      event.preventDefault();
-    }
-  });
-});

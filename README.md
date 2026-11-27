@@ -462,11 +462,12 @@ valor), o horário em que o questionário foi aberto pela primeira vez
 (`questionnaire_started_at`) e o horário de envio (`completed_at`).
 
 **Por que fiz assim:**
-- *Não torno nenhum item obrigatório.* Os termos garantem o "direito de não responder a
-  qualquer questão sem necessidade de justificativa". Item em branco não gera linha, e
-  o CSV informa quantos ficaram em branco (`itens_em_branco`), para servir de filtro
-  na análise. Para reduzir os brancos sem tirar esse direito, ao enviar com itens sem
-  resposta o navegador avisa quantos são e deixa a pessoa revisar ou enviar assim mesmo.
+- *Os itens Likert (Blocos I a III) são obrigatórios*, por decisão metodológica da
+  orientação, para não haver dados ausentes nos construtos do modelo. O navegador não
+  envia o formulário sem eles (`required`) e o servidor confere de novo; se faltar
+  algum, nada é gravado e o questionário volta com o aviso. O perfil (Bloco IV) continua
+  opcional, com a opção "Prefiro não responder"; o CSV informa quantos ficaram em
+  branco (`itens_em_branco`).
 - *Os itens PER perguntam por sinais objetivos da interface* (nome, logotipo, cores,
   siglas e documentos do IFAP), e não por avaliações de identidade, para não se
   sobreporem aos itens de IDI (validade discriminante, HTMT).
@@ -584,10 +585,10 @@ Gero o CSV com **uma linha por participante que concluiu** e 57 colunas:
 | `seg_chatbot` | Segundos entre abrir o chatbot e abrir o questionário (tempo aproximado de interação) |
 | `seg_questionario` | Segundos entre abrir e enviar o questionário |
 | `seg_total` | Segundos do aceite do termo ao envio |
-| `itens_em_branco` | Quantos dos 41 itens ficaram sem resposta |
+| `itens_em_branco` | Quantos dos 5 itens do perfil ficaram sem resposta (os itens Likert são obrigatórios) |
 | `mensagens_chatbot` | Perguntas feitas ao chatbot, lidas do próprio chatbot (vazio = contagem indisponível) |
-| `atencao_ok` | 1 = acertou a verificação de atenção (`AC1` = 4); 0 = errou; vazio = em branco |
-| `HUM1` ... `FREQUENCIA` | As 41 respostas (1 a 5 nos itens Likert; o texto da opção no perfil; vazio = não respondeu) |
+| `atencao_ok` | 1 = acertou a verificação de atenção (`AC1` = 4); 0 = errou |
+| `HUM1` ... `FREQUENCIA` | As 41 respostas (1 a 5 nos itens Likert, obrigatórios; o texto da opção no perfil; vazio = prefiro não responder) |
 
 O **[codebook](dados/codebook.csv)** descreve cada coluna: nome, descrição, tipo e
 valores possíveis. Eu o **gero pelo próprio sistema**, a partir do mesmo código que

@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "Se você usar este software, cite-o conforme os metadados abaixo."
 type: software
 title: "FormSurvey: sistema de consentimento eletrônico e coleta de dados para experimentos com condições sorteadas"
-version: 0.11.0
-date-released: 2026-11-23
+version: 0.12.0
+date-released: 2026-11-27
 license: GPL-3.0-only
 repository-code: "https://github.com/wellfurtado/FormSurvey"
 authors:

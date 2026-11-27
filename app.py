@@ -548,9 +548,10 @@ def questionnaire(token):
     Só libero o questionário depois que o chatbot foi aberto: responder sobre
     um chatbot que não se viu tornaria a resposta inválida para o experimento.
 
-    Nenhuma pergunta é obrigatória (exigência ética: "você tem o direito de não
-    responder a qualquer questão"). Itens em branco simplesmente não geram
-    linha na tabela responses, e o CSV informa quantos ficaram em branco.
+    Os itens Likert (Blocos I a III) são obrigatórios: o navegador não envia o
+    formulário sem eles (atributo "required") e eu confiro de novo aqui, porque
+    o navegador pode ser burlado. O perfil (Bloco IV) continua opcional, com a
+    opção "Prefiro não responder"; o CSV informa quantos ficaram em branco.
     """
     participant = get_participant_or_404(token)
     done = _redirect_if_completed(participant)
@@ -574,6 +575,11 @@ def questionnaire(token):
             return redirect(url_for("chatbot_step", token=token))
 
     if request.method == "POST":
+        missing = [c for c in questions.all_likert_codes()
+                   if not questions.is_valid_answer(c, request.form.get(c, "").strip())]
+        if missing:
+            flash(f"Responda a todos os itens dos Blocos I a III ({len(missing)} sem resposta).")
+            return redirect(url_for("questionnaire", token=token))
         for code in questions.all_question_codes():
             value = request.form.get(code, "").strip()
             # Só aceito valores que existem no instrumento. Isso impede que
@@ -716,15 +722,15 @@ def export_columns_dictionary():
         ("seg_chatbot", "Segundos entre abrir o chatbot e abrir o questionário (tempo aproximado de interação)", "inteiro", ""),
         ("seg_questionario", "Segundos entre abrir e enviar o questionário", "inteiro", ""),
         ("seg_total", "Segundos entre o aceite do termo e o envio do questionário", "inteiro", ""),
-        ("itens_em_branco", f"Quantidade de itens não respondidos (de {len(questions.all_question_codes())})", "inteiro", ""),
+        ("itens_em_branco", f"Itens do perfil (Bloco IV) não respondidos (de {len(questions.PROFILE_BLOCK[1])}); os itens Likert são obrigatórios", "inteiro", ""),
         ("mensagens_chatbot", "Perguntas feitas ao chatbot, lidas do chatbot na abertura e no envio do questionário", "inteiro", "vazio = contagem indisponível"),
         ("atencao_ok", "Acertou a verificação de atenção (" + ", ".join(f"{c} = {v}" for c, v in questions.ATTENTION_CHECKS.items()) + ")", "0/1", "1 = acertou; 0 = errou; vazio = deixou em branco"),
     ]
     for code in questions.all_question_codes():
         if questions.is_likert_code(code):
-            construct = questions.CONSTRUCT_LABELS.get(code.rstrip("0123456789"), "")
+            construct = questions.CONSTRUCT_LABELS.get(code.rstrip("0123456789"), "Verificação de atenção")
             scale = "; ".join(f"{v} = {label}" for v, label in questions.LIKERT_SCALE)
-            columns.append((code, f"[{construct}] {questions.question_text(code)}", "Likert 1-5", scale + "; vazio = não respondeu"))
+            columns.append((code, f"[{construct}] {questions.question_text(code)}", "Likert 1-5", scale + "; obrigatório"))
         else:
             options = "; ".join(questions.profile_options(code))
             columns.append((code, questions.question_text(code), "categórica", options + "; vazio = prefiro não responder"))

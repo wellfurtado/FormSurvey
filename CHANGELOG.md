@@ -3,6 +3,17 @@
 O formato segue o [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/), e as
 versões seguem o [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [0.12.0] — 2026-11-27
+
+### Alterado
+- Itens Likert (Blocos I a III, incluindo o `AC1`) passam a ser obrigatórios: `required`
+  no formulário e conferência no servidor (se faltar algum, nada é gravado). O perfil
+  (Bloco IV) continua opcional, com "Prefiro não responder".
+- `itens_em_branco` passa a contar só o perfil; o codebook foi regenerado.
+
+### Removido
+- Aviso de itens em branco antes do envio (substituído pela obrigatoriedade).
+
 ## [0.11.0] — 2026-11-23
 
 Ajustes pedidos pelo coorientador antes da coleta (dependem da emenda ao CEP).

@@ -37,9 +37,17 @@ os.environ["CHATBOT_URL_C1"] = "https://chatbot.exemplo/c1"
 import app as app_module  # noqa: E402
 import config  # noqa: E402
 import db  # noqa: E402
+import questions  # noqa: E402
 
 TOKEN_RE = re.compile(r"/pesquisa/([^/]+)/chatbot")
 TIME_OF_DAY_RE = re.compile(r"\d{2}:\d{2}")
+
+
+def full_answers(**override):
+    """Todos os itens Likert respondidos (são obrigatórios), com trocas pontuais."""
+    answers = {code: "3" for code in questions.all_likert_codes()}
+    answers.update(override)
+    return answers
 
 
 def token_from_location(location):
@@ -115,16 +123,25 @@ class FlowTest(unittest.TestCase):
         p = self.query_one("SELECT * FROM participants WHERE token = ?", (token,))
         self.assertIsNotNone(p["questionnaire_started_at"])
 
-        # "7" não existe na escala e deve ser descartado; "5" e o perfil valem.
+        # Itens Likert são obrigatórios: faltando algum (ou com "7", que não
+        # existe na escala), nada é gravado e o questionário volta.
         resp = client.post(
             f"/pesquisa/{token}/questionario",
-            data={"HUM1": "5", "HUM2": "7", "VINCULO": "Estudante"},
+            data=full_answers(HUM1="5", HUM2="7", VINCULO="Estudante"),
+        )
+        self.assertIn(f"/pesquisa/{token}/questionario", resp.location)
+        self.assertIsNone(self.query_one("SELECT 1 FROM responses WHERE participant_id = ?", (p["id"],)))
+
+        # Completo, com o perfil opcional parcialmente respondido, conclui.
+        resp = client.post(
+            f"/pesquisa/{token}/questionario",
+            data=full_answers(HUM1="5", VINCULO="Estudante"),
         )
         self.assertEqual(resp.status_code, 302)
         self.assertIn(f"/pesquisa/{token}/concluido", resp.location)
         saved = {r["question_code"]: r["value"] for r in self.query_all(
             "SELECT question_code, value FROM responses WHERE participant_id = ?", (p["id"],))}
-        self.assertEqual(saved, {"HUM1": "5", "VINCULO": "Estudante"})
+        self.assertEqual(saved, {**full_answers(HUM1="5"), "VINCULO": "Estudante"})
 
         # Página final e comprovante em PDF.
         resp = client.get(f"/pesquisa/{token}/concluido")
@@ -163,7 +180,7 @@ class FlowTest(unittest.TestCase):
         fresh = self.app.test_client()
         self.assertEqual(fresh.get(f"/pesquisa/{token}/chatbot").status_code, 200)
         fresh.get(f"/pesquisa/{token}/chatbot/abrir")
-        resp = fresh.post(f"/pesquisa/{token}/questionario", data={"HUM2": "3"})
+        resp = fresh.post(f"/pesquisa/{token}/questionario", data=full_answers())
         self.assertIn("/concluido", resp.location)
 
     def test_invalid_participant_token_is_404(self):
@@ -202,7 +219,7 @@ class FlowTest(unittest.TestCase):
         self.assertEqual(p["kind"], "minor")
 
         minor.get(f"/pesquisa/{token}/chatbot/abrir")
-        resp = minor.post(f"/pesquisa/{token}/questionario", data={"HUM1": "4"})
+        resp = minor.post(f"/pesquisa/{token}/questionario", data=full_answers(HUM1="4"))
         self.assertIn("/concluido", resp.location)
         self.assertTrue(minor.get(f"/pesquisa/{token}/comprovante.pdf").data.startswith(b"%PDF"))
 
@@ -329,7 +346,7 @@ class FlowTest(unittest.TestCase):
     def test_export_csv_content(self):
         client, token = self.new_adult()
         client.get(f"/pesquisa/{token}/chatbot/abrir")
-        client.post(f"/pesquisa/{token}/questionario", data={"PU1": "4"})
+        client.post(f"/pesquisa/{token}/questionario", data=full_answers(PU1="4"))
         p = self.query_one("SELECT * FROM participants WHERE token = ?", (token,))
 
         resp = self.admin_client().get("/admin/exportar/respostas.csv")
@@ -346,7 +363,7 @@ class FlowTest(unittest.TestCase):
         self.assertEqual(row["condicao"], p["condition"])
         self.assertEqual((row["hum"], row["per"]), (str(cond["hum"]), str(cond["per"])))
         self.assertEqual(row["PU1"], "4")
-        self.assertEqual(row["itens_em_branco"], str(len(header) - header.index("HUM1") - 1))
+        self.assertEqual(row["itens_em_branco"], str(len(questions.PROFILE_BLOCK[1])))  # só o perfil pode ficar em branco
         self.assertEqual(row["sessao_chatbot"], "")  # sem CHAT_SECRET, coluna vazia
 
         # Com a chave, a coluna é o mesmo HMAC que o chatbot calcula.
@@ -376,7 +393,7 @@ class FlowTest(unittest.TestCase):
             resp = client.get(f"/pesquisa/{token}/questionario")
             self.assertIn(f"/pesquisa/{token}/chatbot", resp.location)  # só 1 pergunta: volta
             self.assertEqual(client.get(f"/pesquisa/{token}/questionario").status_code, 200)
-            client.post(f"/pesquisa/{token}/questionario", data={"AC1": "2", "PU1": "5"})
+            client.post(f"/pesquisa/{token}/questionario", data=full_answers(AC1="2", PU1="5"))
         p = self.query_one("SELECT * FROM participants WHERE token = ?", (token,))
         self.assertEqual(p["chat_messages"], 2)
 
